@@ -1,0 +1,51 @@
+{% extends "basic.html" %}
+
+{% block content %}
+<div class="hero d-flex align-items-center justify-content-center text-center text-white"
+     style="height: 80vh; position: relative; overflow: hidden;">
+  <video autoplay muted loop style="position: absolute; width: 100%; height: 100%; object-fit: cover;">
+    <source src="static/videos/back_video.mp4" type="video/mp4">
+    Your browser does not support HTML5 video.
+  </video>
+  <div class="overlay" style="background-color: rgba(0, 0, 0, 0.5); position: absolute; inset: 0;"></div>
+  <div style="position: relative; z-index: 1;">
+    <h1 class="display-3 fw-bold">We Build. We Guide. We Teach.</h1>
+    <p class="lead">Software, Consulting, and Training for Future Innovators</p>
+  </div>
+</div>
+
+
+
+<div class="container text-center my-5">
+  <div class="row">
+    <div class="col-md-4">
+      <h4 class="fw-semibold mb-2">Software Development</h4>
+      <p class="text-muted">Custom web and mobile solutions tailored to your business goals.</p>
+    </div>
+    <div class="col-md-4">
+      <h4 class="fw-semibold mb-2">Business Consultation</h4>
+      <p class="text-muted">Helping companies plan, scale, and innovate through technology.</p>
+    </div>
+    <div class="col-md-4">
+      <h4 class="fw-semibold mb-2">Training & Mentorship</h4>
+      <p class="text-muted">Upskilling students and professionals with real-world development experience.</p>
+    </div>
+  </div>
+</div>
+
+
+<div class="container text-center my-5">
+  <h2 class="fw-bold mb-4">Why Choose Us</h2>
+  <p class="lead text-muted">
+    We combine technical expertise with real-world experience to deliver solutions that truly make a difference.
+    Our team is passionate about guiding businesses and mentoring future developers.
+  </p>
+</div>
+
+
+<div class="text-center my-5">
+  <a href="{{url_for('main.contact')}}" class="btn btn-primary btn-lg">Get in Touch</a>
+  <a href="{{url_for('main.about')}}" class="btn btn-outline-secondary btn-lg ms-3">Learn More</a>
+</div>
+
+{% endblock %}

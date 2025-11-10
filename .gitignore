@@ -1,0 +1,26 @@
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual env
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+*.env
+
+# Flask instance folder
+instance/
+
+# Editor files
+.vscode/
+.idea/
+.DS_Store
+
+# Python packaging
+dist/
+build/
+*.egg-info/

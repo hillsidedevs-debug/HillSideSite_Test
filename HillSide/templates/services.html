@@ -1,0 +1,78 @@
+{% extends "basic.html" %}
+
+{% block content %}
+<section class="py-5 text-center bg-light">
+  <div class="container">
+    <h1 class="display-4 fw-bold">Our Services</h1>
+    <p class="lead text-muted">
+      We provide modern software solutions, strategic business consultation, and hands-on training to help you grow with technology.
+    </p>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="bi bi-code-slash fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fw-bold">Software Development</h5>
+            <p class="card-text text-muted">
+              We build scalable web and mobile applications tailored to your business needs using modern technologies and clean architecture.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="bi bi-graph-up-arrow fs-1 text-success"></i>
+            </div>
+            <h5 class="card-title fw-bold">Business Consultation</h5>
+            <p class="card-text text-muted">
+              We help companies innovate, optimize operations, and make technology decisions that align with long-term goals.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4">
+          <div class="card-body text-center d-flex flex-column justify-content-between">
+            <div>
+              <div class="mb-3">
+                <i class="bi bi-mortarboard fs-1 text-warning"></i>
+              </div>
+              <h5 class="card-title fw-bold">Training & Mentorship</h5>
+              <p class="card-text text-muted">
+                We offer workshops, bootcamps, and one-on-one mentorship programs to help students and professionals grow in software development.
+              </p>
+            </div>
+            <div class="mt-3">
+              <a href="{{ url_for('courses.list_courses') }}" class="btn btn-outline-warning rounded-pill px-4">
+                <i class="bi bi-book me-2"></i> View Courses
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light text-center">
+  <div class="container">
+    <h2 class="fw-bold mb-4">How We Work</h2>
+    <p class="lead text-muted mb-4">
+      We collaborate closely with every client to understand their goals, prototype fast, and deliver reliable, impactful solutions.
+    </p>
+    <a href="{{url_for('main.contact')}}" class="btn btn-primary btn-lg">Get in Touch</a>
+  </div>
+</section>
+{% endblock %}

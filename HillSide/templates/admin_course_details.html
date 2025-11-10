@@ -1,0 +1,121 @@
+{% extends "basic.html" %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">{{ course.title }}</h2>
+      <p class="text-muted mb-0">Course Details & Enrollments</p>
+    </div>
+    <a href="{{ url_for('admin.manage_courses') }}" class="btn btn-outline-secondary rounded-4">
+      <i class="bi bi-arrow-left"></i> Back to Courses
+    </a>
+  </div>
+
+  <!-- Course Info Card -->
+  <div class="card shadow-sm border-0 rounded-4 mb-4">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-md-3">
+          {% if course.image %}
+            <img src="{{ course.image }}" class="img-fluid rounded-4" alt="{{ course.title }}">
+          {% else %}
+            <div class="bg-light rounded-4 d-flex justify-content-center align-items-center" style="height: 180px;">
+              <span class="text-muted">No image</span>
+            </div>
+          {% endif %}
+        </div>
+        <div class="col-md-9">
+          <h4 class="fw-semibold mb-2">{{ course.title }}</h4>
+          <p class="text-muted">{{ course.description or 'No description available.' }}</p>
+          <div class="row">
+            <div class="col-sm-4 mb-2">
+              <i class="bi bi-calendar-event text-primary"></i>
+              <strong class="ms-2">Start Date:</strong> {{ course.start_date.strftime('%Y-%m-%d') }}
+            </div>
+            <div class="col-sm-4 mb-2">
+              <i class="bi bi-hourglass-split text-success"></i>
+              <strong class="ms-2">Duration:</strong> {{ course.duration }}
+            </div>
+            <div class="col-sm-4 mb-2">
+              <i class="bi bi-people text-warning"></i>
+              <strong class="ms-2">Seats Left:</strong> {{ course.total_seats - course.enrollments|length }} / {{ course.total_seats }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enrollments Table -->
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold">Enrolled Students</h5>
+        <span class="text-muted">Total: {{ enrollments|length }}</span>
+      </div>
+
+      {% if enrollments %}
+      <table class="table align-middle table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Progress</th>
+            <th>Enrolled On</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in enrollments %}
+          <tr>
+            <td>{{ e.user.username }}</td>
+            <td>{{ e.user.email }}</td>
+            <td>
+              <span class="badge bg-{{ 'success' if e.status == 'active' else 'secondary' }}">{{ e.status }}</span>
+            </td>
+            <td>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ e.progress }}%" aria-valuenow="{{ e.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+              <small class="text-muted">{{ e.progress }}%</small>
+            </td>
+            <td>{{ e.enrolled_on.strftime('%Y-%m-%d') }}</td>
+            <td>
+              <!-- Remove Student Modal Trigger -->
+              <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#removeModal{{ e.id }}">
+                <i class="bi bi-x-circle"></i>
+              </button>
+
+              <!-- Remove Modal -->
+              <div class="modal fade" id="removeModal{{ e.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content border-0 shadow-sm rounded-4">
+                    <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title">Remove Student</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      Are you sure you want to remove <strong>{{ e.user.username }}</strong> from this course?
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary rounded-4" data-bs-dismiss="modal">Cancel</button>
+                      <form action="#" method="POST">
+                        <button type="submit" class="btn btn-danger rounded-4">Remove</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-center text-muted mb-0">No students enrolled yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

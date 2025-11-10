@@ -1,0 +1,67 @@
+{% extends "basic.html" %}
+
+{% block content %}
+
+<div class="container my-5">
+  <div class="text-center mb-5">
+    <h1 class="fw-bold">All Courses</h1>
+    <p class="text-muted">Browse through all available courses.</p>
+    {% if current_user.is_authenticated and current_user.is_admin() %}
+    <a href="{{ url_for('courses.add_course') }}" class="btn btn-primary rounded-pill">
+      <i class="bi bi-plus-circle me-2"></i> Add New Course
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="row g-4">
+    {% for course in courses %}
+    <div class="col-md-6 col-lg-4">
+      <a
+        href="{{ url_for('courses.course_details', course_id=course.id) }}"
+        class="text-decoration-none text-dark"
+      >
+        <div class="card h-100 shadow-sm border-0 rounded-4 course-card">
+          {% if course.image %}
+          <img
+            src="{{ url_for('static', filename='uploads/courses/' ~ course.image) }}"
+            class="card-img-top rounded-top-4"
+            style="height: 200px; object-fit: cover;"
+            alt="{{ course.title }}"
+          />
+          {% else %}
+          <div
+            class="d-flex align-items-center justify-content-center bg-light"
+            style="height: 200px;"
+          >
+            <i class="bi bi-image text-muted fs-1"></i>
+          </div>
+          {% endif %}
+
+          <div class="card-body text-center">
+            <h5 class="card-title fw-semibold">{{ course.title }}</h5>
+            <p class="text-muted">{{ course.description[:100] }}{% if course.description|length > 100 %}...{% endif %}</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    {% else %}
+    <p class="text-center text-muted mt-5">
+      No courses found.
+      {% if current_user.is_authenticated and current_user.is_admin() %}  
+        <a href="{{ url_for('courses.add_course') }}">Add one now!</a>
+      {% endif %}
+    </p>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .course-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,0.1);
+  }
+</style>
+{% endblock %}

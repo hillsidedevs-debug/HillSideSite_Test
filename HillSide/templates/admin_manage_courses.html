@@ -1,0 +1,86 @@
+{% extends "basic.html" %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Manage Courses</h2>
+    <a href="{{ url_for('courses.add_course') }}" class="btn btn-primary rounded-4 px-4">
+      <i class="bi bi-plus-circle me-2"></i> Add New Course
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body">
+      <table class="table align-middle table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Start Date</th>
+            <th>Duration</th>
+            <th>Seats</th>
+            <th>Seats Left</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for course in courses %}
+          <tr>
+            <td>
+              {% if course.image %}
+                <img src="{{ course.image }}" alt="{{ course.title }}" class="rounded-3" width="80" height="50">
+              {% else %}
+                <span class="text-muted">No image</span>
+              {% endif %}
+            </td>
+            <td class="fw-semibold">
+              <a href="{{ url_for('admin.course_details', course_id=course.id) }}" class="text-decoration-none text-dark">
+                {{ course.title }}
+              </a>
+            </td>
+
+            <td>{{ course.start_date.strftime('%Y-%m-%d') }}</td>
+            <td>{{ course.duration_weeks }}</td>
+            <td>{{ course.total_seats }}</td>
+            <td>{{ course.total_seats - course.enrollments|length }}</td>
+            <td>
+              <a href="{{ url_for('admin.edit_course', course_id=course.id) }}" class="btn btn-sm btn-outline-primary me-2">
+                <i class="bi bi-pencil"></i>
+              </a>
+
+              <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ course.id }}">
+                <i class="bi bi-trash"></i>
+              </button>
+
+              <!-- Delete Modal -->
+              <div class="modal fade" id="deleteModal{{ course.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ course.id }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content border-0 shadow-sm rounded-4">
+                    <div class="modal-header bg-danger text-white">
+                      <h5 class="modal-title" id="deleteModalLabel{{ course.id }}">Delete Course</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      Are you sure you want to permanently delete <strong>{{ course.title }}</strong>?
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary rounded-4" data-bs-dismiss="modal">Cancel</button>
+                      <form action="{{ url_for('admin.delete_course', course_id=course.id) }}" method="POST">
+                        <button type="submit" class="btn btn-danger rounded-4 px-3">Delete</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted">No courses found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

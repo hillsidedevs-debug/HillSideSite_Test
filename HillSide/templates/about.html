@@ -1,0 +1,64 @@
+{% extends "basic.html" %}
+
+{% block content %}
+
+<section class="py-5 bg-light text-center">
+  <div class="container">
+    <h1 class="display-4 fw-bold">About Us</h1>
+    <p class="lead text-muted">
+      Empowering businesses and students through technology, innovation, and mentorship.
+    </p>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <video autoplay muted loop playsinline class="w-100 rounded-3 shadow-sm">
+          <source src="/static/videos/about-video.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      <div class="col-md-6">
+        <h2 class="fw-bold mb-3">Who We Are</h2>
+        <p>
+          We’re a team of passionate developers, consultants, and educators dedicated to helping organizations
+          innovate and students grow their skills. Our mission is to bridge the gap between technology and people.
+        </p>
+        <p>
+          From building scalable software to mentoring future developers, we believe in practical solutions that
+          drive real results.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light text-center">
+  <div class="container">
+    <h2 class="fw-bold mb-4">Our Philosophy</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <h5 class="fw-semibold">Innovation</h5>
+        <p class="text-muted">We embrace new technologies to deliver modern, scalable solutions.</p>
+      </div>
+      <div class="col-md-4">
+        <h5 class="fw-semibold">Collaboration</h5>
+        <p class="text-muted">We work closely with clients and students to ensure meaningful outcomes.</p>
+      </div>
+      <div class="col-md-4">
+        <h5 class="fw-semibold">Growth</h5>
+        <p class="text-muted">We invest in learning, sharing knowledge, and building a better digital future.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 text-center">
+  <div class="container">
+    <h3 class="fw-bold mb-3">Want to work or learn with us?</h3>
+    <a href="{{url_for('main.contact')}}" class="btn btn-primary btn-lg">Get in Touch</a>
+  </div>
+</section>
+{% endblock %}

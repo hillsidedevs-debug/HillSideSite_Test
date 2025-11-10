@@ -1,0 +1,104 @@
+{% extends "basic.html" %}
+{% block content %}
+
+<div class="container my-5">
+  <div class="text-center mb-5">
+    <h1 class="fw-bold">My Dashboard</h1>
+    <p class="text-muted">Welcome back, {{ current_user.username }}! Here are your enrolled courses.</p>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if enrollments %}
+  <div class="row g-4">
+    {% for enrollment in enrollments %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+          
+          {% if enrollment.course.image %}
+          <img
+            src="{{ url_for('static', filename='uploads/courses/' ~ enrollment.course.image) }}"
+            class="card-img-top"
+            style="height: 180px; object-fit: cover;"
+            alt="{{ enrollment.course.title }}"
+          />
+          {% else %}
+          <div
+            class="d-flex align-items-center justify-content-center bg-light"
+            style="height: 180px;"
+          >
+            <i class="bi bi-book text-muted fs-1"></i>
+          </div>
+          {% endif %}
+
+          <div class="card-body d-flex flex-column justify-content-between">
+            <div>
+              <h5 class="card-title fw-bold">{{ enrollment.course.title }}</h5>
+              <p class="text-muted small mb-1">
+              <strong>Start:</strong> {{ enrollment.course.start_date.strftime('%b %d, %Y') if enrollment.course.start_date else 'TBA' }}
+              </p>
+              <p class="text-muted small mb-1">
+                <strong>Duration:</strong> {{ enrollment.course.duration_weeks or 'N/A' }} weeks
+              </p>
+              <p class="text-muted small mb-1">
+                <strong>Seats Left:</strong> {{ enrollment.course.seats_left if enrollment.course.total_seats else 'Unlimited' }}
+              </p>
+
+              <p class="text-muted small mb-1">
+                Enrolled on:
+                <span class="fw-semibold">
+                  {{ enrollment.enrolled_on.strftime('%B %d, %Y') }}
+                </span>
+              </p>
+              <p class="text-muted small mb-1">Status: <span class="badge bg-info text-dark">{{ enrollment.status }}</span></p>
+              <p class="text-muted small mb-3">
+                Progress:
+                <span class="fw-semibold">{{ enrollment.progress|round(1) }}%</span>
+              </p>
+              <p class="text-muted">{{ enrollment.course.description[:100] }}{% if enrollment.course.description|length > 100 %}...{% endif %}</p>
+            </div>
+
+            <div class="text-center mt-3">
+              <a href="{{ url_for('courses.course_details', course_id=enrollment.course.id) }}"
+                 class="btn btn-outline-primary rounded-pill px-4">
+                <i class="bi bi-arrow-right-circle me-2"></i> View Course
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center mt-5">
+    <i class="bi bi-emoji-smile fs-1 text-secondary"></i>
+    <p class="text-muted fs-5 mt-3">You’re not enrolled in any courses yet.</p>
+    <a href="{{ url_for('courses.list_courses') }}" class="btn btn-primary rounded-pill px-4">
+      <i class="bi bi-mortarboard me-2"></i> Browse Courses
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.75rem 1.25rem rgba(0,0,0,0.1);
+  }
+</style>
+
+{% endblock %}

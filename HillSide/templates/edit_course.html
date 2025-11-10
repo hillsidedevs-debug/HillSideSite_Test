@@ -1,0 +1,44 @@
+{% extends "basic.html" %}
+{% block content %}
+<div class="container py-5">
+  <div class="col-md-8 mx-auto">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body">
+        <h3 class="fw-bold mb-4">Edit Course</h3>
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Course Title</label>
+            <input type="text" class="form-control" name="title" value="{{ course.title }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Description</label>
+            <textarea class="form-control" name="description" rows="4">{{ course.description }}</textarea>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col">
+              <label class="form-label">Start Date</label>
+              <input type="date" class="form-control" name="start_date" value="{{ course.start_date.strftime('%Y-%m-%d') }}" required>
+            </div>
+            <div class="col">
+              <label class="form-label">Duration (e.g. 8 weeks)</label>
+              <input type="text" class="form-control" name="duration" value="{{ course.duration }}" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Total Seats</label>
+            <input type="number" class="form-control" name="total_seats" value="{{ course.total_seats }}" required>
+          </div>
+
+          <div class="text-end">
+            <a href="{{ url_for('manage_courses') }}" class="btn btn-outline-secondary rounded-4 me-2">Cancel</a>
+            <button type="submit" class="btn btn-success px-4 rounded-4">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
