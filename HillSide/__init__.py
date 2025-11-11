@@ -17,6 +17,10 @@ def create_app():
 
     register_blueprints(app)
 
+    with app.app_context():
+        db.create_all()  # Creates all tables defined in models
+        print("Database initialized successfully!")
+
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
