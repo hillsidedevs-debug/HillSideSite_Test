@@ -9,3 +9,11 @@ def admin_required(f):
             abort(403)
         return f(*args, **kwargs)
     return decorated_function
+
+def staff_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_staff():
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function

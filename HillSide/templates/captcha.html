@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Human Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f0f0; }
+        .container { text-align: center; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Verify You're Human</h1>
+        <p>To access the site, please complete the CAPTCHA below.</p>
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <p>{{ form.recaptcha() }}</p>
+            {% for message in form.recaptcha.errors %}
+                <span class="error">{{ message }}</span>
+            {% endfor %}
+            <p>{{ form.submit(class="btn") }}</p>
+        </form>
+        <!-- {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %} -->
+    </div>
+</body>
+</html>

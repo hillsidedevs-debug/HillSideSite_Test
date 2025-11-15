@@ -47,7 +47,7 @@
     {% else %}
     <p class="text-center text-muted mt-5">
       No courses found.
-      {% if current_user.is_authenticated and current_user.is_admin() %}  
+      {% if current_user.is_authenticated and (current_user.is_admin() or current_user.is_staff()) %}  
         <a href="{{ url_for('courses.add_course') }}">Add one now!</a>
       {% endif %}
     </p>

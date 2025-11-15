@@ -1,0 +1,88 @@
+{% extends "basic.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Add New Staff User</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Flash messages -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST">
+                            {{ form.hidden_tag() }} 
+
+                            <div class="mb-3">
+                                {{ form.username.label(class_="form-label") }}
+                                {{ form.username(class_="form-control", placeholder="Enter username") }}
+                                {% if form.username.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.username.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.email.label(class_="form-label") }}
+                                {{ form.email(class_="form-control", placeholder="Enter email") }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.password.label(class_="form-label") }}
+                                {{ form.password(class_="form-control", placeholder="Enter password") }}
+                                {% if form.password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.password.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.password_confirm.label(class_="form-label") }}
+                                {{ form.password_confirm(class_="form-control", placeholder="Confirm password") }}
+                                {% if form.password_confirm.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.password_confirm.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <a href="{{ url_for('admin.new_staff_assign_course') }}" class="btn btn-sm btn-primary">Assign Courses</a>
+                            </div>
+
+
+                            <!-- Hidden role field -->
+                            {{ form.role() }}
+
+                            <div class="d-grid">
+                                {{ form.submit(class_="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "basic.html" %}
+{% block content %}
+<div class="container mt-4">
+
+    <div class="row mt-4">
+        <!-- Unassigned -->
+        <div class="col-md-5">
+            <h4>Available Courses</h4>
+            <ul id="unassigned" class="course-list border p-3" ondrop="drop(event)" ondragover="allowDrop(event)">
+                {% for course in unassigned %}
+                    <li class="course-item"
+                        draggable="true"
+                        ondragstart="drag(event)"
+                        data-id="{{ course.id }}">
+                        {{ course.title }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-md-2 text-center d-flex align-items-center justify-content-center">
+            <span class="fs-3">⇆</span>
+        </div>
+
+        <!-- Assigned -->
+        <div class="col-md-5">
+            <h4>Assigned Courses</h4>
+            <ul id="assigned" class="course-list border p-3" ondrop="drop(event)" ondragover="allowDrop(event)">
+                {% for course in assigned %}
+                    <li class="course-item"
+                        draggable="true"
+                        ondragstart="drag(event)"
+                        data-id="{{ course.id }}">
+                        {{ course.title }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <button class="btn btn-primary" onclick="saveAssignments()">Save</button>
+        <a href="{{ url_for('admin.manage_staff') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</div>
+
+<style>
+.course-list { min-height: 300px; list-style: none; }
+.course-item {
+    background: #f7f7f7;
+    margin: 5px 0;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: grab;
+}
+</style>
+
+<script>
+// DnD Functions
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.dataset.id);
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    let courseId = ev.dataTransfer.getData("text");
+    let item = document.querySelector(`[data-id='${courseId}']`);
+    ev.target.appendChild(item);
+}
+
+// Save assignments
+function saveAssignments() {
+    console.log("called");
+    let assignedList = document.querySelectorAll("#assigned .course-item");
+    let assignedIds = Array.from(assignedList).map(el => el.dataset.id);
+
+    fetch("", {  // POST to same route
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ assigned: assignedIds })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Saved!");
+        window.location.href = "{{ url_for('admin.add_staff') }}";
+    });
+}
+</script>
+
+{% endblock %}

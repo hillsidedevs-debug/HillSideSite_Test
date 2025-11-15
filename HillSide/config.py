@@ -3,6 +3,8 @@ import os
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'replace-this-with-a-secure-random-string')
+    RECAPTCHA_PUBLIC_KEY = '6LfkAAosAAAAAGD7cINGSpI9Zl8V_RiNKaBozPOK'
+    RECAPTCHA_PRIVATE_KEY = '6LfkAAosAAAAAIt6TAkkJbzbYzjHaDBKHmn289mA'
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///users.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

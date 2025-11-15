@@ -1,0 +1,72 @@
+{% extends "basic.html" %}
+
+{% block content %}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Staff Dashboard
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="#">Logout</a>  <!-- Assume you have a logout route -->
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold text-primary">
+                    <i class="fas fa-list me-2"></i>All Courses
+                </h1>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search courses...">
+                </div>
+            </div>
+        </div>
+
+        {% if courses %}
+            <div class="row g-4">
+                {% for course in courses %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0">
+                            {% if course.image %}
+                                <img src="{{ course.image }}" class="card-img-top" alt="{{ course.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ course.course.title }}</h5>
+                                <!-- <p class="card-text text-muted">{{ course.course.title[:100] }}... {% if course.description|length > 100 %}<a href="#">Read more</a>{% endif %}</p> -->
+                                {% if course.start_date %}
+                                    <p class="card-text"><small class="text-body-secondary"><i class="fas fa-calendar me-1"></i>Starts: {{ course.start_date.strftime('%B %d, %Y') }}</small></p>
+                                {% endif %}
+                            </div>
+                            <!-- <div class="card-footer bg-light">
+                                {% if course.seats_left is not none %}
+                                    <span class="badge bg-{{ 'success' if course.course.seats_left > 0 else 'danger' }}">
+                                        <i class="fas fa-chair me-1"></i>{{ course.seats_left }} seats left
+                                    </span>
+                                {% endif %}
+                                <a href="#" class="btn btn-outline-primary btn-sm float-end">View Details</a>  Assume a detail route -
+                            </div> -->
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                <h3>No courses available yet.</h3>
+                <p class="text-muted">Get started by adding some courses!</p>
+                <a href="#" class="btn btn-primary">Add Course</a>  <!-- Optional link -->
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}

@@ -18,6 +18,9 @@ class User(db.Model, UserMixin):
     
     def is_admin(self):
         return self.role == 'admin'
+    
+    def is_staff(self):
+        return self.role == 'staff'
 
 
 class Course(db.Model):
