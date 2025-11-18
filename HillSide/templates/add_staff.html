@@ -1,88 +1,151 @@
 {% extends "basic.html" %}
 
 {% block content %}
-
 <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="mb-0">Add New Staff User</h3>
-                    </div>
-                    <div class="card-body">
-                        <!-- Flash messages -->
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                {% for category, message in messages %}
-                                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Add New Staff User</h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.first_name.label(class_="form-label") }}
+                                {{ form.first_name(class_="form-control", placeholder="First name") }}
+                                {% for err in form.first_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
                                 {% endfor %}
-                            {% endif %}
-                        {% endwith %}
-
-                        <form method="POST">
-                            {{ form.hidden_tag() }} 
-
-                            <div class="mb-3">
-                                {{ form.username.label(class_="form-label") }}
-                                {{ form.username(class_="form-control", placeholder="Enter username") }}
-                                {% if form.username.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.username.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
                             </div>
 
-                            <div class="mb-3">
-                                {{ form.email.label(class_="form-label") }}
-                                {{ form.email(class_="form-control", placeholder="Enter email") }}
-                                {% if form.email.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.email.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
+                            <div class="col-md-6 mb-3">
+                                {{ form.last_name.label(class_="form-label") }}
+                                {{ form.last_name(class_="form-control", placeholder="Last name") }}
+                                {% for err in form.last_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
+                                {% endfor %}
                             </div>
+                        </div>
 
-                            <div class="mb-3">
+                        <div class="mb-3">
+                            {{ form.username.label(class_="form-label") }}
+                            {{ form.username(class_="form-control", placeholder="Enter username") }}
+                            {% for err in form.username.errors %}
+                                <div class="invalid-feedback d-block">{{ err }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.email.label(class_="form-label") }}
+                            {{ form.email(class_="form-control", placeholder="Enter email") }}
+                            {% for err in form.email.errors %}
+                                <div class="invalid-feedback d-block">{{ err }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 {{ form.password.label(class_="form-label") }}
-                                {{ form.password(class_="form-control", placeholder="Enter password") }}
-                                {% if form.password.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.password.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
+                                {{ form.password(class_="form-control", placeholder="Password") }}
+                                {% for err in form.password.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
+                                {% endfor %}
                             </div>
-
-                            <div class="mb-3">
+                            <div class="col-md-6 mb-3">
                                 {{ form.password_confirm.label(class_="form-label") }}
                                 {{ form.password_confirm(class_="form-control", placeholder="Confirm password") }}
-                                {% if form.password_confirm.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {% for error in form.password_confirm.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
+                                {% for err in form.password_confirm.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
+                                {% endfor %}
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <a href="{{ url_for('admin.new_staff_assign_course') }}" class="btn btn-sm btn-primary">Assign Courses</a>
+                        <div class="mb-3">
+                            {{ form.role.label(class_="form-label") }}
+                            {{ form.role(class_="form-select") }}
+                            {% for err in form.role.errors %}
+                                <div class="invalid-feedback d-block">{{ err }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.phone_number.label(class_="form-label") }}
+                            {{ form.phone_number(class_="form-control", placeholder="Phone (optional)") }}
+                            {% for err in form.phone_number.errors %}
+                                <div class="invalid-feedback d-block">{{ err }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.photo.label(class_="form-label") }}
+                                {{ form.photo(class_="form-control") }}
+                                {% for err in form.photo.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
+                                {% endfor %}
                             </div>
-
-
-                            <!-- Hidden role field -->
-                            {{ form.role() }}
-
-                            <div class="d-grid">
-                                {{ form.submit(class_="btn btn-primary") }}
+                            <div class="col-md-6 mb-3">
+                                {{ form.resume.label(class_="form-label") }}
+                                {{ form.resume(class_="form-control") }}
+                                {% for err in form.resume.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
+                                {% endfor %}
                             </div>
-                        </form>
-                    </div>
-                    <div class="card-footer text-center">
-                        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
-                    </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.address.label(class_="form-label") }}
+                            {{ form.address(class_="form-control", rows="3", placeholder="Address (optional)") }}
+                            {% for err in form.address.errors %}
+                                <div class="invalid-feedback d-block">{{ err }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.gender.label(class_="form-label") }}
+                                {{ form.gender(class_="form-select") }}
+                                {% for err in form.gender.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.education_qualification.label(class_="form-label") }}
+                                {{ form.education_qualification(class_="form-control", placeholder="e.g. B.Sc, M.A...") }}
+                                {% for err in form.education_qualification.errors %}
+                                    <div class="invalid-feedback d-block">{{ err }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <a href="{{ url_for('admin.new_staff_assign_course') }}" class="btn btn-sm btn-outline-primary">Assign Courses</a>
+                        </div>
+
+                        <div class="d-grid">
+                            {{ form.submit(class_="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}

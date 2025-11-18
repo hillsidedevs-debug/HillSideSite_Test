@@ -4,7 +4,10 @@ from HillSide.forms.register_form import RegisterForm
 from HillSide.forms.login_form import LoginForm
 from HillSide.forms.add_staff_form import AddStaffForm
 from HillSide.extensions import db, bcrypt
-from HillSide.models import User, Enrollment, Course
+from HillSide.models import User, Enrollment, Course, RoleEnum, GenderEnum
+import os
+from flask import current_app
+from werkzeug.utils import secure_filename
 from HillSide.utils import admin_required
 from datetime import datetime
 from sqlalchemy.orm import joinedload
@@ -36,14 +39,14 @@ def manage_courses():
 @login_required
 @admin_required
 def manage_users():
-    users = User.query.filter_by(role='user').all()
+    users = User.query.filter_by(role=RoleEnum.USER).all()
     return render_template('admin_manage_users.html', users=users)
 
 @admin_bp.route('/manage-staff', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def manage_staff():
-    users = User.query.filter_by(role='staff').all()
+    users = User.query.filter_by(role=RoleEnum.STAFF).all()
     return render_template('admin_manage_staff.html', users=users)
 
 @admin_bp.route('/user/<int:user_id>')
@@ -145,31 +148,94 @@ def delete_course(course_id):
 @admin_required
 def add_staff():
     form = AddStaffForm()
+
     if form.validate_on_submit():
-        print("validated")
+
+        # basic uniqueness checks
         if User.query.filter_by(username=form.username.data).first() or User.query.filter_by(email=form.email.data).first():
-            print("Not Available")
+            flash("Username or email already exists.", "error")
             return render_template('add_staff.html', form=form)
-        
+
+        # Hash & decode password
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+
+        # create user instance
         user = User(
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
             username=form.username.data,
             email=form.email.data,
-            password=bcrypt.generate_password_hash(form.password.data),
-            role=form.role.data
-            )
-        
+            password=hashed_password,
+            phone_number=form.phone_number.data or None,
+            address=form.address.data or None,
+            education_qualification=form.education_qualification.data or None,
+        )
+
+        # map role safely (accept either value or name)
+        role_input = form.role.data
+        try:
+            # try by value first
+            user.role = RoleEnum(role_input)
+        except Exception:
+            try:
+                user.role = RoleEnum[role_input]
+            except Exception:
+                # fallback to default
+                user.role = RoleEnum.STAFF
+
+        # map gender safely (accept either value or name)
+        gender_input = (form.gender.data or "").strip()
+        if gender_input:
+            try:
+                user.gender = GenderEnum(gender_input)      # by value
+            except Exception:
+                try:
+                    user.gender = GenderEnum[gender_input]  # by name (may fail)
+                except Exception:
+                    user.gender = None
+        else:
+            user.gender = None
+
+        # Handle file uploads
+        photos_folder = current_app.config.get("UPLOAD_FOLDER_PHOTOS", "static/uploads/photos")
+        resumes_folder = current_app.config.get("UPLOAD_FOLDER_RESUMES", "static/uploads/resumes")
+        os.makedirs(photos_folder, exist_ok=True)
+        os.makedirs(resumes_folder, exist_ok=True)
+
+        if form.photo.data:
+            photo_file = form.photo.data
+            photo_filename = secure_filename(photo_file.filename)
+            photo_path = os.path.join(photos_folder, photo_filename)
+            photo_file.save(photo_path)
+            # store a relative/path or filename depending on your preference
+            user.photo = photo_filename
+
+        if form.resume.data:
+            resume_file = form.resume.data
+            resume_filename = secure_filename(resume_file.filename)
+            resume_path = os.path.join(resumes_folder, resume_filename)
+            resume_file.save(resume_path)
+            user.resume = resume_filename
+
+        # persist user and any enrollments
         db.session.add(user)
-        db.session.flush()  # Flush to get user.id before commit
-        
-        # Create enrollments for selected courses (if any)
+        db.session.flush()  # to populate user.id
+
         selected_course_ids = session.pop('assigned_course_ids', [])
         for course_id in selected_course_ids:
-            enrollment = Enrollment(user_id=user.id, course_id=course_id)
-            db.session.add(enrollment)
-        
+            try:
+                # optional: validate course_id exists
+                course = Course.query.get(int(course_id))
+                if course:
+                    enrollment = Enrollment(user_id=user.id, course_id=course.id)
+                    db.session.add(enrollment)
+            except Exception:
+                continue
+
         db.session.commit()
+        flash("Staff user created successfully!", "success")
         return redirect(url_for('admin.admin_dashboard'))
-    
+
     return render_template('add_staff.html', form=form)
 
 @admin_bp.route('/staff/<int:staff_id>/courses', methods=['GET', 'POST'])

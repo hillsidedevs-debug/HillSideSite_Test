@@ -2,25 +2,69 @@
 from HillSide.extensions import db
 from flask_login import UserMixin
 from datetime import datetime
+from enum import Enum as PyEnum
+from sqlalchemy import Enum
+
+
+
+class RoleEnum(PyEnum):
+    USER = 'user'
+    STAFF = 'staff'
+    ADMIN = 'admin'
+
+class StatusEnum(PyEnum):
+    ACTIVE = 'active'
+    COMPLETED = 'completed'
+    DROPPED = 'dropped'
+
+# New enum for gender
+class GenderEnum(PyEnum):
+    MALE = 'M'
+    FEMALE = 'F'
+    OTHER = 'Other'
+    PREFER_NOT_TO_SAY = 'Prefer not to say'
 
 class User(db.Model, UserMixin):
+
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), nullable=False, unique=True)
-    email = db.Column(db.String(150), nullable=False, unique=True)
+
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+
+    username = db.Column(db.String(150), nullable=False, unique=True, index=True)
+    email = db.Column(db.String(150), nullable=False, unique=True, index=True)
     password = db.Column(db.String(200), nullable=False)
 
-    role = db.Column(db.String(50), default='user')
+    role = db.Column(Enum(RoleEnum, native_enum=False), default=RoleEnum.USER)
 
-    enrollments = db.relationship('Enrollment', back_populates='user', cascade='all, delete-orphan')
+    phone_number = db.Column(db.String(20), nullable=True)
+    photo = db.Column(db.String(255), nullable=True)
+    resume = db.Column(db.String(255), nullable=True)
+    address = db.Column(db.Text, nullable=True)
+    gender = db.Column(
+    Enum(GenderEnum, values_callable=lambda obj: [e.value for e in obj], native_enum=False),
+    nullable=True
+    )
+
+    education_qualification = db.Column(db.String(200), nullable=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    enrollments = db.relationship(
+        'Enrollment',
+        back_populates='user',
+        cascade='all, delete-orphan'
+    )
 
     def __repr__(self):
         return f'<User {self.username}>'
-    
+
     def is_admin(self):
-        return self.role == 'admin'
-    
+        return self.role == RoleEnum.ADMIN
+
     def is_staff(self):
-        return self.role == 'staff'
+        return self.role in (RoleEnum.STAFF, RoleEnum.ADMIN)
 
 
 class Course(db.Model):

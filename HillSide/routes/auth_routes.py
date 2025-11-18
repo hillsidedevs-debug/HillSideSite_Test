@@ -4,24 +4,53 @@ from HillSide.forms.register_form import RegisterForm
 from HillSide.forms.login_form import LoginForm
 from HillSide.extensions import db, bcrypt
 from HillSide.models import User, Enrollment
+import os
+from werkzeug.utils import secure_filename
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
-    if(form.validate_on_submit()):
-        username = form.name.data
-        email = form.email.data
-        password = form.password.data
 
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(username=username, email=email, password=hashed_password)
+    if form.validate_on_submit():
+
+        # Hash password
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+
+        # Create user object
+        user = User(
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            username=form.username.data,
+            email=form.email.data,
+            password=hashed_password,
+            phone_number=form.phone_number.data,
+            address=form.address.data,
+            gender=form.gender.data if form.gender.data else None,
+            education_qualification=form.education_qualification.data,
+        )
+
+        # Handle profile photo upload
+        if form.photo.data:
+            photo_filename = secure_filename(form.photo.data.filename)
+            form.photo.data.save(os.path.join("static/uploads/photos", photo_filename))
+            user.photo = photo_filename
+
+        # Handle resume upload
+        if form.resume.data:
+            resume_filename = secure_filename(form.resume.data.filename)
+            form.resume.data.save(os.path.join("static/uploads/resumes", resume_filename))
+            user.resume = resume_filename
+
+        # Save user to DB
         db.session.add(user)
         db.session.commit()
+
+        flash("Registration successful!", "success")
         return redirect(url_for('main.index'))
-    
-    return render_template('register.html', form=form)
+    return render_template("register.html", form=form)
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
