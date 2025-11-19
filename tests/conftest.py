@@ -32,7 +32,8 @@ def app():
         db.create_all()
         yield app
         db.session.remove()
-        # db.drop_all()
+        db.drop_all()
+        
 
 
 @pytest.fixture

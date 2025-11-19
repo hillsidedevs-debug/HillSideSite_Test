@@ -1,14 +1,13 @@
 {% extends "basic.html" %}
-
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">Manage Users</h2>
+    <h2 class="fw-bold">Manage Users ({{ pagination.total }} total)</h2>
   </div>
 
   <div class="card border-0 shadow-sm rounded-4">
     <div class="card-body">
-      <table class="table align-middle table-hover">
+      <table class="table align-middle table-hover mb-0">
         <thead class="table-light">
           <tr>
             <th>ID</th>
@@ -24,31 +23,76 @@
           <tr>
             <td>{{ user.id }}</td>
             <td>
-              <a href="{{ url_for('admin.user_details', user_id=user.id) }}" class="text-decoration-none text-dark fw-semibold">
+              <a href="{{ url_for('admin.user_details', user_id=user.id) }}"
+                 class="text-decoration-none text-dark fw-semibold">
                 {{ user.username }}
               </a>
             </td>
-
             <td>{{ user.email }}</td>
             <td>
-              <span class="badge bg-{{ 'primary' if user.role == 'admin' else 'secondary' }}">{{ user.role }}</span>
+              <span class="badge bg-{{ 'danger' if user.role.value == 'admin' else 'primary' if user.role.value == 'staff' else 'secondary' }}">
+                {{ user.role.value.title() }}
+              </span>
             </td>
             <td>{{ user.enrollments|length }}</td>
             <td>
-              <a href="#" class="btn btn-sm btn-outline-info me-2">
+              <a href="{{ url_for('admin.user_details', user_id=user.id) }}" class="btn btn-sm btn-outline-info me-2">
                 <i class="bi bi-eye"></i>
               </a>
-              <a href="#" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user?');">
+              <a href="#" class="btn btn-sm btn-outline-danger"
+                 onclick="return confirm('Delete this user?');">
                 <i class="bi bi-trash"></i>
               </a>
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="text-center text-muted">No users found.</td></tr>
+          <tr><td colspan="6" class="text-center text-muted py-5">No users found.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+
+    <!-- Bootstrap 5 Pagination -->
+    {% if pagination.pages > 1 %}
+    <div class="card-footer bg-transparent border-0">
+      <nav aria-label="Users pagination">
+        <ul class="pagination justify-content-center mb-0">
+          <!-- Previous -->
+          <li class="page-item {{ 'disabled' if not pagination.has_prev else '' }}">
+            <a class="page-link" href="{{ url_for('admin.manage_users', page=pagination.prev_num) }}"
+               {% if not pagination.has_prev %}tabindex="-1" aria-disabled="true"{% endif %}>
+              Previous
+            </a>
+          </li>
+
+          <!-- Page numbers (smart range) -->
+          {% for p in pagination.iter_pages(left_edge=2, left_current=2, right_current=3, right_edge=2) %}
+            {% if p %}
+              {% if p == pagination.page %}
+              <li class="page-item active"><a class="page-link" href="#">{{ p }}</a></li>
+              {% else %}
+              <li class="page-item"><a class="page-link" href="{{ url_for('admin.manage_users', page=p) }}">{{ p }}</a></li>
+              {% endif %}
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+
+          <!-- Next -->
+          <li class="page-item {{ 'disabled' if not pagination.has_next else '' }}">
+            <a class="page-link" href="{{ url_for('admin.manage_users', page=pagination.next_num) }}"
+               {% if not pagination.has_next %}tabindex="-1" aria-disabled="true"{% endif %}>
+              Next
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="text-center text-muted small">
+        Showing {{ pagination.items|length }} of {{ pagination.total }} users
+        (Page {{ pagination.page }} of {{ pagination.pages }})
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

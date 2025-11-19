@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from HillSide.forms.register_form import RegisterForm
 from HillSide.forms.login_form import LoginForm
@@ -38,10 +38,29 @@ def manage_courses():
 @admin_bp.route('/manage_users')
 @login_required
 @admin_required
+# def manage_users():
+#     users = User.query.filter_by(role=RoleEnum.USER).all()
+#     return render_template('admin_manage_users.html', users=users)
 def manage_users():
-    users = User.query.filter_by(role=RoleEnum.USER).all()
-    return render_template('admin_manage_users.html', users=users)
+    if not current_user.is_admin():
+        abort(403)
 
+    # ----------- PAGINATION SETTINGS -----------
+    page = request.args.get('page', 1, type=int)   # current page from URL ?page=2
+    per_page = 25                                  # how many users per page (adjust as needed)
+
+    # Main query with pagination
+    pagination = User.query.filter_by(role=RoleEnum.USER).order_by(User.id.desc()).paginate(
+        page=page, 
+        per_page=per_page, 
+        error_out=False
+    )
+
+    return render_template(
+        'admin_manage_users.html',      # your template
+        users=pagination.items,  # only the users for this page
+        pagination=pagination    # the pagination object
+    )
 @admin_bp.route('/manage-staff', methods=['GET', 'POST'])
 @login_required
 @admin_required
