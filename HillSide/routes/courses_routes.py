@@ -62,8 +62,15 @@ def add_course():
 
 @courses_bp.route('/courses')
 def list_courses():
-    all_courses = Course.query.all()
-    return render_template('courses.html', courses=all_courses)
+    #all_courses = Course.query.all()
+
+    page = request.args.get('page', 1, type=int)
+    pagination = Course.query.order_by(Course.id.desc()).paginate(
+        page = page,
+        per_page=9,
+        error_out=False
+    )
+    return render_template('courses.html', courses=pagination.items, pagination=pagination)
 
 @courses_bp.route('/courses/<int:course_id>')
 def course_details(course_id):

@@ -1,11 +1,56 @@
 {% extends "basic.html" %}
 
 {% block content %}
+
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="fw-bold">Manage Staff</h2>
   </div>
+<!-- ==================== SEARCH BAR ==================== -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('admin.manage_staff') }}" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <input type="text" name="q" class="form-control form-control-lg rounded-4"
+                           placeholder="Search by username, email or name..."
+                           value="{{ request.args.get('q', '') }}">
+                </div>
+                <!-- <div class="col-md-4">
+                    <select name="role" class="form-select form-select-lg rounded-4">
+                        <option value="">All Roles</option>
+                        <option value="admin" {% if request.args.get('role') == 'admin' %}selected{% endif %}>Admin</option>
+                        <option value="teacher" {% if request.args.get('role') == 'teacher' %}selected{% endif %}>Teacher</option>
+                        <option value="staff" {% if request.args.get('role') == 'staff' %}selected{% endif %}>Staff</option>
+                    </select>
+                </div> -->
+                <div class="col-md-3 d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-4">
+                        <i class="bi bi-search me-2"></i> Search
+                    </button>
+                </div>
+            </form>
 
+            <!-- Result count & clear link -->
+            {% if request.args.get('q') or request.args.get('role') %}
+            <div class="mt-3">
+                <small class="text-muted">
+                    {% if users|length == 0 %}
+                        <strong>No staff</strong> found
+                    {% else %}
+                        <strong>{{ users|length }}</strong> staff member{{ 's' if users|length != 1 else '' }}
+                    {% endif %}
+                    {% if request.args.get('q') or request.args.get('role') %}
+                        matching your search
+                        {% if request.args.get('q') %} for "<em>{{ request.args.get('q')|escape }}</em>"{% endif %}
+                        {% if request.args.get('role') %} with role "<em>{{ request.args.get('role')|capitalize }}</em>"{% endif %}
+                    {% endif %}
+                    • <a href="{{ url_for('admin.manage_staff') }}" class="text-decoration-none">Clear filters</a>
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <!-- ==================================================== -->
   <div class="card border-0 shadow-sm rounded-4">
     <div class="card-body">
       <table class="table align-middle table-hover">
@@ -44,11 +89,44 @@
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="text-center text-muted">No users found.</td></tr>
+          <tr>
+              <td colspan="6" class="text-center text-muted py-5">
+                  {% if request.args.get('q') or request.args.get('role') %}
+                      No staff match your search.
+                  {% else %}
+                      No staff members yet.
+                  {% endif %}
+              </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
+
+  {% if pagination.pages > 1 %}
+<div class="d-flex justify-content-center mt-4">
+  <nav>
+      <ul class="pagination">
+          <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('admin.manage_staff', page=pagination.prev_num, **request.args) }}">Previous</a>
+          </li>
+          {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+              {% if page_num %}
+              <li class="page-item {% if pagination.page == page_num %}active{% endif %}">
+                  <a class="page-link" href="{{ url_for('admin.manage_staff', page=page_num, **request.args) }}">{{ page_num }}</a>
+              </li>
+              {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+              {% endif %}
+          {% endfor %}
+          <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('admin.manage_staff', page=pagination.next_num, **request.args) }}">Next</a>
+          </li>
+      </ul>
+  </nav>
 </div>
+{% endif %}
+</div>
+
 {% endblock %}

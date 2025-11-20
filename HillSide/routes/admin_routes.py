@@ -32,8 +32,14 @@ def admin_dashboard():
 @login_required
 @admin_required
 def manage_courses():
-    courses = Course.query.all()
-    return render_template('admin_manage_courses.html', courses=courses)
+
+    page = request.args.get('page', 1, type=int)
+    pagination = Course.query.order_by(Course.id.desc()).paginate(
+        page = page,
+        per_page=25,
+        error_out=False
+    )
+    return render_template('admin_manage_courses.html', courses=pagination.items, pagination=pagination)
 
 @admin_bp.route('/manage_users')
 @login_required
@@ -42,20 +48,25 @@ def manage_courses():
 #     users = User.query.filter_by(role=RoleEnum.USER).all()
 #     return render_template('admin_manage_users.html', users=users)
 def manage_users():
-    if not current_user.is_admin():
-        abort(403)
+    page = request.args.get('page', 1, type=int)
+    query = request.args.get('q', '').strip()
+    role = request.args.get('role', '').strip()
 
-    # ----------- PAGINATION SETTINGS -----------
-    page = request.args.get('page', 1, type=int)   # current page from URL ?page=2
-    per_page = 25                                  # how many users per page (adjust as needed)
+    filters = [User.role.in_([RoleEnum.USER])]
 
-    # Main query with pagination
-    pagination = User.query.filter_by(role=RoleEnum.USER).order_by(User.id.desc()).paginate(
-        page=page, 
-        per_page=per_page, 
-        error_out=False
-    )
+    if query:
+        search = f"%{query}%"
+        filters.append(db.or_(
+            User.username.ilike(search),
+            User.email.ilike(search)
+        ))
+    if role:
+        filters.append(User.role == role)
 
+    pagination = User.query.filter(*filters)\
+        .order_by(User.id.desc())\
+        .paginate(page=page, per_page=20, error_out=False)
+   
     return render_template(
         'admin_manage_users.html',      # your template
         users=pagination.items,  # only the users for this page
@@ -65,8 +76,25 @@ def manage_users():
 @login_required
 @admin_required
 def manage_staff():
-    users = User.query.filter_by(role=RoleEnum.STAFF).all()
-    return render_template('admin_manage_staff.html', users=users)
+    page = request.args.get('page', 1, type=int)
+    query = request.args.get('q', '').strip()
+    role = request.args.get('role', '').strip()
+
+    filters = [User.role.in_([RoleEnum.STAFF])]
+
+    if query:
+        search = f"%{query}%"
+        filters.append(db.or_(
+            User.username.ilike(search),
+            User.email.ilike(search)
+        ))
+    if role:
+        filters.append(User.role == role)
+
+    pagination = User.query.filter(*filters)\
+        .order_by(User.id.desc())\
+        .paginate(page=page, per_page=20, error_out=False)
+    return render_template('admin_manage_staff.html', users=pagination.items, pagination=pagination)
 
 @admin_bp.route('/user/<int:user_id>')
 @login_required

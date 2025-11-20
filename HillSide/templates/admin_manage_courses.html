@@ -42,7 +42,7 @@
             <td>{{ course.start_date.strftime('%Y-%m-%d') }}</td>
             <td>{{ course.duration_weeks }}</td>
             <td>{{ course.total_seats }}</td>
-            <td>{{ course.total_seats - course.enrollments|length }}</td>
+            <td>{{ course.seats_left }}</td>
             <td>
               <a href="{{ url_for('admin.edit_course', course_id=course.id) }}" class="btn btn-sm btn-outline-primary me-2">
                 <i class="bi bi-pencil"></i>
@@ -83,4 +83,32 @@
     </div>
   </div>
 </div>
+
+{% if pagination.pages > 1 %}
+<div class="d-flex justify-content-center mt-4">
+  <nav>
+    <ul class="pagination">
+      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+        <a class="page-link" href="?page={{ pagination.prev_num }}">Previous</a>
+      </li>
+
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if page_num %}
+          <li class="page-item {% if pagination.page == page_num %}active{% endif %}">
+            <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+
+      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+        <a class="page-link" href="?page={{ pagination.next_num }}">Next</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+{% endif %}
 {% endblock %}
