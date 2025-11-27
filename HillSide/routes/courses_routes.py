@@ -63,6 +63,8 @@ def add_course():
 @courses_bp.route('/courses')
 def list_courses():
     #all_courses = Course.query.all()
+    print("ROUTE DB URI:", db.engine.url)
+
 
     page = request.args.get('page', 1, type=int)
     pagination = Course.query.order_by(Course.id.desc()).paginate(

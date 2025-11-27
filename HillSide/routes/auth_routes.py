@@ -6,6 +6,7 @@ from HillSide.extensions import db, bcrypt
 from HillSide.models import User, Enrollment
 import os
 from werkzeug.utils import secure_filename
+from sqlalchemy.exc import IntegrityError
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -44,11 +45,23 @@ def register():
             user.resume = resume_filename
 
         # Save user to DB
-        db.session.add(user)
-        db.session.commit()
+        try:
+            db.session.add(user)
+            db.session.commit()
+            flash("Registration successful!", "success")
+            return redirect(url_for('main.index'))
 
-        flash("Registration successful!", "success")
-        return redirect(url_for('main.index'))
+        except IntegrityError as e:
+            db.session.rollback()
+
+            # Detect which field caused the unique error
+            if "email" in str(e.orig):
+                flash("Email already exists. Please use a different one.", "danger")
+            elif "username" in str(e.orig):
+                flash("Username already exists. Please choose a different one.", "danger")
+            else:
+                flash("A database error occurred. Please try again.", "danger")
+
     return render_template("register.html", form=form)
 
 

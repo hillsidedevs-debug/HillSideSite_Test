@@ -162,7 +162,7 @@ def edit_course(course_id):
         course.total_seats = int(request.form['total_seats'])
         db.session.commit()
         flash('✅ Course updated successfully!', 'success')
-        return redirect(url_for('manage_courses'))
+        return redirect(url_for('admin.manage_courses'))
 
     return render_template('edit_course.html', course=course)
 

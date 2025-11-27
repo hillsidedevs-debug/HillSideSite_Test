@@ -1,47 +1,34 @@
 # tests/conftest.py
 import sys
 from pathlib import Path
-
-# Add the project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 from HillSide import create_app
 from HillSide.extensions import db, bcrypt
-from HillSide.models import User, RoleEnum
+from HillSide.models import User, RoleEnum, Course
 
-@pytest.fixture
+
+@pytest.fixture(scope="function")  # ← Important: fresh DB for each test
 def app():
-    app = create_app()
-    app.config.update({
+
+    app_config = {
         "TESTING": True,
         "SECRET_KEY": "test-secret",
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "WTF_CSRF_ENABLED": False,           # Important for form posts
+        "WTF_CSRF_ENABLED": False,
         "UPLOAD_FOLDER_PHOTOS": "/tmp/photos",
         "UPLOAD_FOLDER_RESUMES": "/tmp/resumes",
-    })
+    }
+        
+    app = create_app(app_config)
+
 
     with app.app_context():
         db.create_all()
-
-        # Create a default admin if none exists (your app might do this via script)
-        if not User.query.filter_by(role=RoleEnum.ADMIN).first():
-            admin = User(
-                first_name="Admin",
-                last_name="User",
-                username="admin",
-                email="admin@test.com",
-                password=bcrypt.generate_password_hash("password").decode("utf-8"),  # "password"
-                role=RoleEnum.ADMIN
-            )
-            db.session.add(admin)
-            db.session.commit()
-
         yield app
-
-        db.session.remove()
         db.drop_all()
+        db.session.remove()
 
 
 @pytest.fixture
@@ -54,31 +41,98 @@ def runner(app):
     return app.test_cli_runner()
 
 
-# Helper: log in as any user
-def login(client, email="admin@test.com", password="password"):
+# Helper to log in any user (useful and reliable)
+def _login(client, email, password="password"):
     return client.post("/login", data={
         "email": email,
-        "password": password
+        "password": password,
+        "remember": "y"
     }, follow_redirects=True)
 
+@pytest.fixture
+def sample_image(tmp_path):
+    file_path = tmp_path / "test.jpg"
+    file_path.write_bytes(b"fake image data")
+    return file_path
 
 @pytest.fixture
-def logged_in_admin(client):
-    return login(client, "admin@test.com", "password")
-
+def sample_user():
+    from HillSide.models import User, RoleEnum
+    user = User(
+        first_name="Test",
+        last_name="User",
+        username="testuser",
+        email="user@example.com",
+        password="hashed",
+        role=RoleEnum.USER
+    )
+    db.session.add(user)
+    db.session.commit()
+    return user
 
 @pytest.fixture
-def logged_in_staff(client, app):
+def sample_course(app):
     with app.app_context():
-        staff = User(
-            first_name="Staff",
-            last_name="One",
-            username="staff1",
-            email="staff@test.com",
-            password="$2b$12$W8hJntk4oZh8Xz5e0k3Y8u9q1w2e3r4t5y6u7i8o9p0a1s2d3f4g5h",  # "password"
-            role=RoleEnum.STAFF
+        course = Course(
+            title="Sample Course",
+            description="Test desc",
+            start_date=None,
+            duration_weeks=4,
+            total_seats=20,
+            image=None,
         )
-        db.session.add(staff)
+        from HillSide.extensions import db
+        db.session.add(course)
         db.session.commit()
-        login(client, "staff@test.com", "password")
-        return staff
+        return course.id
+
+@pytest.fixture
+def regular_user(client, app):
+    with app.app_context():
+        user = User(
+            first_name="Charlie",
+            last_name="Brown",
+            username="charlie",
+            email="charlie@example.com",
+            password=bcrypt.generate_password_hash("testpass123").decode("utf-8"),
+            role=RoleEnum.USER,
+        )
+        db.session.add(user)
+        db.session.commit()
+
+        # Log the user in
+        client.post("/login", data={
+            "email": "charlie@example.com",
+            "password": "testpass123"
+        }, follow_redirects=True)
+
+        yield user
+
+        # Cleanup
+        db.session.delete(user)
+        db.session.commit()
+
+
+
+@pytest.fixture
+def admin_user(app):
+    with app.app_context():
+        user = User(
+            username="admin",
+            email="admin@test.com",
+            password=bcrypt.generate_password_hash("password").decode("utf-8"),
+            first_name="Admin",
+            last_name="User",
+            role=RoleEnum.ADMIN
+        )
+        db.session.add(user)
+        db.session.commit()
+        yield user
+        db.session.delete(user)
+        db.session.commit()
+
+
+@pytest.fixture
+def logged_in_admin(client, admin_user):
+    _login(client, "admin@test.com")
+    return admin_user
