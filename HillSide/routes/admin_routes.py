@@ -110,7 +110,7 @@ def user_details(user_id):
 def staff_details(staff_id):
     user = User.query.get_or_404(staff_id)
     enrollments = Enrollment.query.filter_by(user_id=user.id).all()
-    return render_template('admin_staff_details.html', user=user, enrollments=enrollments)
+    return render_template('admin_staff_details.html', staff=user, enrollments=enrollments)
 
 
 @admin_bp.route('/course/<int:course_id>')
@@ -138,7 +138,7 @@ def remove_enrollment(enrollment_id):
     db.session.commit()
     
     flash(f'🧹 {user_username} has been removed from {course_title}.', 'info')
-    return redirect(url_for('admin.manage_users'))
+    return redirect(request.referrer or url_for('admin.manage_users'))
 # def remove_enrollment(enrollment_id):
 #     enrollment = Enrollment.query.get_or_404(enrollment_id)
 #     db.session.delete(enrollment)

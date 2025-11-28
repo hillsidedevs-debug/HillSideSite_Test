@@ -2,10 +2,16 @@
 {% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2 class="fw-bold mb-0">{{ user.username }}</h2>
-      <p class="text-muted mb-0">User Profile & Enrollments</p>
+    <div class="d-flex align-items-center gap-3">
+      <!-- Profile Photo -->
+      <img src="{{ url_for('static', filename='uploads/photos/' + user.photo) if user.photo else url_for('static', filename='default/profile.png') }}" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" alt="Profile Photo">
+
+      <div>
+        <h2 class="fw-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h2>
+        <p class="text-muted mb-0">@{{ user.username }}</p>
+      </div>
     </div>
+
     <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-secondary rounded-4">
       <i class="bi bi-arrow-left"></i> Back to Users
     </a>
@@ -14,20 +20,40 @@
   <!-- User Info Card -->
   <div class="card shadow-sm border-0 rounded-4 mb-4">
     <div class="card-body">
-      <div class="row">
+      <h5 class="fw-bold mb-3">User Information</h5>
+      <div class="row g-4">
+
         <div class="col-md-6">
           <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Joined:</strong> {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</p>
+          <p><strong>Phone Number:</strong> {{ user.phone_number or 'N/A' }}</p>
+          <p><strong>Gender:</strong> {{ user.gender or 'N/A' }}</p>
+          <p><strong>Address:</strong> {{ user.address or 'N/A' }}</p>
         </div>
+
         <div class="col-md-6">
-          <p><strong>Total Courses Enrolled:</strong> {{ enrollments|length }}</p>
-          <p><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+          <p><strong>Education:</strong> {{ user.education_qualification or 'N/A' }}</p>
+          <p><strong>Role:</strong> <span class="badge bg-primary">{{ user.role.value }}</span></p>
+          <p><strong>Joined:</strong> {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</p>
+          <p><strong>Last Updated:</strong> {{ user.updated_at.strftime('%Y-%m-%d') if user.updated_at else 'N/A' }}</p>
         </div>
+
+        <!-- Resume -->
+        <div class="col-12">
+          <strong>Resume:</strong>
+          {% if user.resume %}
+            <a href="{{ url_for('static', filename='uploads/resumes/' + user.resume) }}" class="btn btn-sm btn-outline-dark rounded-4 ms-2" download>
+              <i class="bi bi-file-earmark-arrow-down"></i> Download Resume
+            </a>
+          {% else %}
+            <span class="text-muted">No resume uploaded</span>
+          {% endif %}
+        </div>
+
       </div>
     </div>
   </div>
 
-  <!-- Enrolled Courses Table -->
+  <!-- Enrollments -->
   <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -69,7 +95,6 @@
             </td>
             <td>{{ e.enrolled_on.strftime('%Y-%m-%d') }}</td>
             <td>
-              <!-- Remove Enrollment -->
               <form action="{{ url_for('admin.remove_enrollment', enrollment_id=e.id) }}" method="POST" class="d-inline">
                 <button type="submit" class="btn btn-sm btn-outline-danger rounded-4">
                   <i class="bi bi-x-circle"></i>

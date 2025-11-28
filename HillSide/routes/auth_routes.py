@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from HillSide.forms.register_form import RegisterForm
 from HillSide.forms.login_form import LoginForm
@@ -35,13 +35,13 @@ def register():
         # Handle profile photo upload
         if form.photo.data:
             photo_filename = secure_filename(form.photo.data.filename)
-            form.photo.data.save(os.path.join("static/uploads/photos", photo_filename))
+            form.photo.data.save(os.path.join(current_app.root_path, "static/uploads/photos", photo_filename))
             user.photo = photo_filename
 
         # Handle resume upload
         if form.resume.data:
             resume_filename = secure_filename(form.resume.data.filename)
-            form.resume.data.save(os.path.join("static/uploads/resumes", resume_filename))
+            form.resume.data.save(os.path.join(current_app.root_path, "static/uploads/resumes", resume_filename))
             user.resume = resume_filename
 
         # Save user to DB

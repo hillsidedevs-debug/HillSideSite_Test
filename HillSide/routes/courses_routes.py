@@ -24,6 +24,11 @@ def allowed_file(filename):
 
 
 
+from flask import current_app
+from werkzeug.utils import secure_filename
+import uuid
+import os
+
 @courses_bp.route('/add-course', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -35,14 +40,42 @@ def add_course():
         duration_weeks = request.form.get('duration_weeks')
         total_seats = request.form.get('total_seats')
 
-        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date() if start_date_str else None
+        # Parse date
+        start_date = (
+            datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            if start_date_str else None
+        )
 
+        # ---------------------------
+        # SAFE IMAGE HANDLING
+        # ---------------------------
         image_file = request.files.get('image')
         image_filename = None
-        if image_file and image_file.filename:
-            image_filename = image_file.filename
-            image_file.save(f'static/uploads/courses/{image_filename}')
 
+        if image_file and image_file.filename:
+            # Validate extension
+            ext = image_file.filename.rsplit('.', 1)[-1].lower()
+            if ext not in {'png', 'jpg', 'jpeg', 'gif'}:
+                flash("❌ Invalid image format.", "danger")
+                return redirect(url_for("courses.add_course"))
+
+            # Ensure upload folder exists
+            upload_folder = os.path.join(current_app.root_path, "static/uploads/courses")
+            os.makedirs(upload_folder, exist_ok=True)
+
+            # Generate safe + unique filename
+            original = secure_filename(image_file.filename)
+            unique_name = f"{uuid.uuid4().hex}_{original}"
+
+            # Save file
+            save_path = os.path.join(upload_folder, unique_name)
+            image_file.save(save_path)
+
+            image_filename = unique_name
+
+        # ---------------------------
+        # CREATE COURSE
+        # ---------------------------
         course = Course(
             title=title,
             description=description,
@@ -51,6 +84,7 @@ def add_course():
             total_seats=int(total_seats) if total_seats else None,
             image=image_filename
         )
+
         db.session.add(course)
         db.session.commit()
 
@@ -58,6 +92,7 @@ def add_course():
         return redirect(url_for('courses.list_courses'))
 
     return render_template('add_course.html')
+
 
 
 @courses_bp.route('/courses')
