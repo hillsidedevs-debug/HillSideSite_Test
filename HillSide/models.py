@@ -34,7 +34,6 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), nullable=False, unique=True, index=True)
     email = db.Column(db.String(150), nullable=False, unique=True, index=True)
     password = db.Column(db.String(200), nullable=False)
-
     role = db.Column(Enum(RoleEnum, native_enum=False), default=RoleEnum.USER)
 
     phone_number = db.Column(db.String(20), nullable=True)
@@ -94,6 +93,8 @@ class Enrollment(db.Model):
     enrolled_on = db.Column(db.DateTime, default=datetime.utcnow)
     progress = db.Column(db.Float, default=0.0)  
     status = db.Column(db.String(50), default='active') 
+
+    city_town = db.Column(db.String(100), nullable=True)
 
     user = db.relationship('User', back_populates='enrollments')
     course = db.relationship('Course', back_populates='enrollments')

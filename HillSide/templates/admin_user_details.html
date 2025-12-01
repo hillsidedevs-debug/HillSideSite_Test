@@ -1,20 +1,26 @@
 {% extends "basic.html" %}
 {% block content %}
 <div class="container py-4">
+
+  <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-3">
-      <!-- Profile Photo -->
-      <img src="{{ url_for('static', filename='uploads/photos/' + user.photo) if user.photo else url_for('static', filename='default/profile.png') }}" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" alt="Profile Photo">
-
+      <img src="{{ url_for('static', filename='uploads/photos/' ~ user.photo) if user.photo else url_for('static', filename='default/avatar.png') }}"
+           class="rounded-circle shadow" style="width: 90px; height: 90px; object-fit: cover;" alt="Profile">
       <div>
         <h2 class="fw-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h2>
-        <p class="text-muted mb-0">@{{ user.username }}</p>
+        <p class="text-muted mb-0">@{{ user.username }} • {{ user.email }}</p>
       </div>
     </div>
 
-    <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-secondary rounded-4">
-      <i class="bi bi-arrow-left"></i> Back to Users
-    </a>
+    <div>
+      <a href="{{ url_for('admin.manage_users') }}" class="btn btn-outline-secondary rounded-pill me-2">
+        Back to Users
+      </a>
+      <button class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#editUserModal">
+        Edit User
+      </button>
+    </div>
   </div>
 
   <!-- User Info Card -->
@@ -22,93 +28,162 @@
     <div class="card-body">
       <h5 class="fw-bold mb-3">User Information</h5>
       <div class="row g-4">
-
         <div class="col-md-6">
           <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Phone Number:</strong> {{ user.phone_number or 'N/A' }}</p>
-          <p><strong>Gender:</strong> {{ user.gender or 'N/A' }}</p>
+          <p><strong>Phone:</strong> {{ user.phone_number or 'N/A' }}</p>
+          <p><strong>Gender:</strong> {{ user.gender or 'Not specified' }}</p>
           <p><strong>Address:</strong> {{ user.address or 'N/A' }}</p>
         </div>
-
         <div class="col-md-6">
           <p><strong>Education:</strong> {{ user.education_qualification or 'N/A' }}</p>
-          <p><strong>Role:</strong> <span class="badge bg-primary">{{ user.role.value }}</span></p>
-          <p><strong>Joined:</strong> {{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}</p>
-          <p><strong>Last Updated:</strong> {{ user.updated_at.strftime('%Y-%m-%d') if user.updated_at else 'N/A' }}</p>
+          <p><strong>Role:</strong> 
+            <span class="badge bg-{{ 'danger' if user.role.value == 'admin' else 'warning' if user.role.value == 'staff' else 'primary' }}">
+              {{ user.role.value|capitalize }}
+            </span>
+          </p>
+          <p><strong>Member Since:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+          <p><strong>Last Updated:</strong> {{ user.updated_at.strftime('%B %d, %Y') }}</p>
         </div>
-
-        <!-- Resume -->
         <div class="col-12">
           <strong>Resume:</strong>
           {% if user.resume %}
-            <a href="{{ url_for('static', filename='uploads/resumes/' + user.resume) }}" class="btn btn-sm btn-outline-dark rounded-4 ms-2" download>
-              <i class="bi bi-file-earmark-arrow-down"></i> Download Resume
+            <a href="{{ url_for('static', filename='uploads/resumes/' ~ user.resume) }}" class="btn btn-sm btn-success rounded-pill ms-2" download>
+              Download Resume
             </a>
           {% else %}
-            <span class="text-muted">No resume uploaded</span>
+            <span class="text-muted ms-2">No resume uploaded</span>
           {% endif %}
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- Enrollments -->
+  <!-- Enrollments Table (unchanged, just cleaner) -->
   <div class="card shadow-sm border-0 rounded-4">
     <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="fw-bold">Enrolled Courses</h5>
-        <span class="text-muted">Total: {{ enrollments|length }}</span>
-      </div>
-
+      <h5 class="fw-bold mb-3">Enrolled Courses ({{ enrollments|length }})</h5>
       {% if enrollments %}
-      <table class="table align-middle table-hover">
-        <thead class="table-light">
-          <tr>
-            <th>Course</th>
-            <th>Start Date</th>
-            <th>Duration</th>
-            <th>Progress</th>
-            <th>Status</th>
-            <th>Enrolled On</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for e in enrollments %}
-          <tr>
-            <td>
-              <a href="{{ url_for('admin.course_details', course_id=e.course.id) }}" class="text-decoration-none text-dark fw-semibold">
-                {{ e.course.title }}
-              </a>
-            </td>
-            <td>{{ e.course.start_date.strftime('%Y-%m-%d') }}</td>
-            <td>{{ e.course.duration }}</td>
-            <td>
-              <div class="progress" style="height: 8px;">
-                <div class="progress-bar bg-info" role="progressbar" style="width: {{ e.progress }}%" aria-valuenow="{{ e.progress }}" aria-valuemin="0" aria-valuemax="100"></div>
-              </div>
-              <small class="text-muted">{{ e.progress }}%</small>
-            </td>
-            <td>
-              <span class="badge bg-{{ 'success' if e.status == 'active' else 'secondary' }}">{{ e.status }}</span>
-            </td>
-            <td>{{ e.enrolled_on.strftime('%Y-%m-%d') }}</td>
-            <td>
-              <form action="{{ url_for('admin.remove_enrollment', enrollment_id=e.id) }}" method="POST" class="d-inline">
-                <button type="submit" class="btn btn-sm btn-outline-danger rounded-4">
-                  <i class="bi bi-x-circle"></i>
-                </button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Course</th>
+                <th>Enrolled On</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for e in enrollments %}
+              <tr>
+                <td><strong>{{ e.course.title }}</strong></td>
+                <td>{{ e.enrolled_on.strftime('%b %d, %Y') }}</td>
+                <td>
+                  <div class="progress" style="height: 6px;">
+                    <div class="progress-bar class="progress-bar {{ 'bg-success' if e.progress >= 90 else 'bg-info' }}" 
+                         style="width: {{ e.progress }}%"></div>
+                  </div>
+                  <small>{{ e.progress }}%</small>
+                </td>
+                <td>
+                  <span class="badge bg-{{ 'success' if e.status == 'completed' else 'warning' if e.status == 'dropped' else 'info' }}">
+                    {{ e.status|capitalize }}
+                  </span>
+                </td>
+                <td>
+                  <form action="{{ url_for('admin.remove_enrollment', enrollment_id=e.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Remove from course?')">
+                      Remove
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       {% else %}
-      <p class="text-center text-muted mb-0">This user is not enrolled in any courses yet.</p>
+        <p class="text-center text-muted py-3">Not enrolled in any courses yet.</p>
       {% endif %}
     </div>
   </div>
 </div>
+
+<!-- ====================== EDIT USER MODAL ====================== -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content rounded-4">
+      <div class="modal-header border-0">
+        <h4 class="modal-title fw-bold">Edit User: {{ user.username }}</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form method="POST" action="{{ url_for('admin.edit_user', user_id=user.id) }}" enctype="multipart/form-data">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">First Name</label>
+              <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last Name</label>
+              <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Username</label>
+              <input type="text" name="username" class="form-control" value="{{ user.username }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Phone Number</label>
+              <input type="text" name="phone_number" class="form-control" value="{{ user.phone_number or '' }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Role</label>
+              <select name="role" class="form-select" required>
+                <option value="user" {{ 'selected' if user.role.value == 'user' }}>User</option>
+                <option value="staff" {{ 'selected' if user.role.value == 'staff' }}>Staff</option>
+                <option value="admin" {{ 'selected' if user.role.value == 'admin' }}>Admin</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Gender</label>
+              <select name="gender" class="form-select">
+                <option value="">Not specified</option>
+                <option value="M" {{ 'selected' if user.gender == 'M' }}>Male</option>
+                <option value="F" {{ 'selected' if user.gender == 'F' }}>Female</option>
+                <option value="Other" {{ 'selected' if user.gender == 'Other' }}>Other</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Education</label>
+              <input type="text" name="education_qualification" class="form-control" value="{{ user.education_qualification or '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <textarea name="address" class="form-control" rows="2">{{ user.address or '' }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Profile Photo</label>
+              <input type="file" name="photo" class="form-control" accept="image/*">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Resume (PDF)</label>
+              <input type="file" name="resume" class="form-control" accept=".pdf">
+            </div>
+          </div>
+
+          <div class="text-end mt-4">
+            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success rounded-pill px-4">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

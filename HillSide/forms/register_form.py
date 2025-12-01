@@ -4,7 +4,7 @@ from wtforms import (
     SelectField
 )
 from flask_wtf.file import FileField, FileAllowed
-from wtforms.validators import DataRequired, Email, Optional
+from wtforms.validators import DataRequired, Email, Optional, EqualTo
 from HillSide.models import GenderEnum  # import your enum
 
 
@@ -16,7 +16,10 @@ class RegisterForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
-
+    password_confirm = PasswordField(
+        'Confirm Password',
+        validators=[DataRequired(), EqualTo('password', message='Passwords must match')]
+    )
     phone_number = StringField("Phone Number", validators=[Optional()])
 
     photo = FileField(

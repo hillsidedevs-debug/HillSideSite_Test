@@ -120,14 +120,29 @@ def course_details(course_id):
 def enroll_course(course_id):
     course = Course.query.get_or_404(course_id)
 
-    existing = Enrollment.query.filter_by(user_id=current_user.id, course_id=course.id).first()
+    # Prevent double enrollment
+    existing = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course.id
+    ).first()
     if existing:
-        flash('⚠️ You are already enrolled in this course.', 'warning')
+        flash('You are already enrolled in this course.', 'warning')
         return redirect(url_for('courses.course_details', course_id=course.id))
 
-    enrollment = Enrollment(user_id=current_user.id, course_id=course.id)
+    # Get the city/town from the form (the dropdown or text input you added)
+    city_town = request.form.get('city_town', '').strip()
+    if city_town == '':
+        city_town = None
+
+    # Create enrollment with the new field
+    enrollment = Enrollment(
+        user_id=current_user.id,
+        course_id=course.id,
+        city_town=city_town
+    )
+
     db.session.add(enrollment)
     db.session.commit()
 
-    flash('🎉 Successfully enrolled in the course!', 'success')
+    flash('Successfully enrolled in the course!', 'success')
     return redirect(url_for('courses.course_details', course_id=course.id))

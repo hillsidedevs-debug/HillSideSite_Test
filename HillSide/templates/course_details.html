@@ -35,6 +35,20 @@
           {% endwith %}
           {% if current_user.is_authenticated and not current_user.is_admin() %}
             <form method="POST" action="{{ url_for('courses.enroll_course', course_id=course.id) }}">
+              <div class="mb-3">
+                <label for="city_town" class="form-label fw-semibold">
+                  Which city/town are you joining from?
+                </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="city_town"
+                  name="city_town"
+                  placeholder="e.g. Nairobi, Lagos, Accra, Mumbai..."
+                  required
+                />
+                <div class="form-text">This helps us know where our students are from</div>
+              </div>
               <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">
                 <i class="bi bi-box-arrow-in-right me-2"></i> Enroll in Course
               </button>

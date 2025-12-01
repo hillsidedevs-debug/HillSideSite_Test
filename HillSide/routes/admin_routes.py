@@ -14,6 +14,14 @@ from sqlalchemy.orm import joinedload
 
 admin_bp = Blueprint('admin', __name__)
 
+
+UPLOAD_FOLDER = 'static/uploads/courses'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 @admin_bp.route('/admin-dashboard')
 @login_required
 @admin_required
@@ -110,7 +118,7 @@ def user_details(user_id):
 def staff_details(staff_id):
     user = User.query.get_or_404(staff_id)
     enrollments = Enrollment.query.filter_by(user_id=user.id).all()
-    return render_template('admin_staff_details.html', staff=user, enrollments=enrollments)
+    return render_template('admin_staff_details.html', user=user, enrollments=enrollments)
 
 
 @admin_bp.route('/course/<int:course_id>')
@@ -329,7 +337,44 @@ def new_staff_assign_course():
         return {"status": "success"}, 200
     
     return render_template('staff_course_assgn.html', assigned = assigned_courses, unassigned=unassigned_courses)
-        
+
+@admin_bp.route('/user/<int:user_id>/edit', methods=['GET', 'POST'])
+@admin_required
+def edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        user.first_name = request.form['first_name']
+        user.last_name = request.form['last_name']
+        user.username = request.form['username']
+        user.email = request.form['email']
+        user.phone_number = request.form.get('phone_number') or None
+        user.gender = request.form.get('gender') or None
+        user.education_qualification = request.form.get('education_qualification') or None
+        user.address = request.form.get('address') or None
+        user.role = RoleEnum(request.form['role'])
+
+        # Photo upload
+        if 'photo' in request.files:
+            file = request.files['photo']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(current_app.root_path, "static/uploads/photos", filename))
+                user.photo = filename
+
+        # Resume upload
+        if 'resume' in request.files:
+            file = request.files['resume']
+            if file and allowed_file(file.filename, {'pdf'}):
+                filename = secure_filename(f"resume_{user.id}.pdf")
+                file.save(os.path.join(current_app.root_path, "static/uploads/resumes", filename))
+                user.resume = filename
+
+        db.session.commit()
+        flash(f'User {user.username} updated successfully!', 'success')
+        return redirect(url_for('admin.user_details', user_id=user.id))
+
+    return redirect(url_for('admin.user_details', user_id=user.id))  # GET shows modal
 
 @admin_bp.route("/users")
 def list_users():

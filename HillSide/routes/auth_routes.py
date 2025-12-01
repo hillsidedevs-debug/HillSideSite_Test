@@ -101,3 +101,38 @@ def dashboard():
 def logout():
     logout_user()
     return redirect(url_for('main.index'))
+
+@auth_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def update_profile():
+    if request.method == 'POST':
+        current_user.first_name = request.form['first_name']
+        current_user.last_name = request.form['last_name']
+        current_user.username = request.form['username']
+        current_user.email = request.form['email']
+        current_user.phone_number = request.form.get('phone_number') or None
+        current_user.gender = request.form.get('gender') or None
+        current_user.education_qualification = request.form.get('education_qualification') or None
+        current_user.address = request.form.get('address') or None
+
+        # Handle photo upload
+        if 'photo' in request.files:
+            file = request.files['photo']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(current_app.root_path, "static/uploads/photos", filename))
+                current_user.photo = filename
+
+        # Handle resume upload
+        if 'resume' in request.files:
+            file = request.files['resume']
+            if file and file.filename.lower().endswith('.pdf'):
+                filename = secure_filename(f"resume_{current_user.id}.pdf")
+                file.save(os.path.join(current_app.root_path, "static/uploads/resumes", filename))
+                current_user.resume = filename
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('auth.dashboard'))
+
+    return redirect(url_for('auth.dashboard'))  # GET just shows the tab
