@@ -88,24 +88,35 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
-        # 1. Check if user exists
+        # ---- 1. User does not exist ----
         if not user:
             flash('Invalid email or password', 'danger')
             return render_template('login.html', form=form)
 
-        # 2. Check if user is verified
+        # ---- 2. User exists but email NOT verified ----
         if not user.is_verified:
-            flash('Please verify your email before logging in.', 'warning')
+            flash(
+                'Your account is not verified yet. Please check your email.',
+                'warning'
+            )
+            return render_template(
+                'login.html',
+                form=form,
+                show_resend=True,   # <-- appears ONLY when needed
+                email=email         # <-- used by button
+            )
+
+        # ---- 3. Wrong password ----
+        if not bcrypt.check_password_hash(user.password, password):
+            flash('Invalid email or password', 'danger')
             return render_template('login.html', form=form)
 
-        # 3. Check password
-        if bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('main.index'))
-        else:
-            flash('Invalid email or password', 'danger')
+        # ---- 4. Everything OK, log in ----
+        login_user(user)
+        return redirect(url_for('main.index'))
 
     return render_template('login.html', form=form)
+
 
 
 @auth_bp.route("/dashboard")
@@ -207,3 +218,25 @@ def verify_email(token):
     flash("Your email has been verified! You can now log in.", "success")
     return redirect(url_for('auth.login'))
 
+@auth_bp.route('/resend-verification', methods=['GET', 'POST'])
+def resend_verification():
+    if request.method == 'POST':
+        email = request.form.get('email')
+
+        user = User.query.filter_by(email=email).first()
+
+        if not user:
+            flash("No account found with that email.", "danger")
+            return redirect(url_for('auth.resend_verification'))
+
+        if user.is_verified:
+            flash("Your account is already verified. Please log in.", "info")
+            return redirect(url_for('auth.login'))
+
+        # Send email again
+        send_verification_email(user)
+
+        flash("A new verification email has been sent.", "success")
+        return redirect(url_for('auth.login'))
+
+    return render_template("resend_verification.html")
