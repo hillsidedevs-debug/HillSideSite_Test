@@ -19,7 +19,8 @@ def create_admin():
             username="admin",
             email="admin@admin.com",
             password=hashed_password,
-            role=RoleEnum.ADMIN
+            role=RoleEnum.ADMIN,
+            is_verified=True,
         )
 
         db.session.add(admin)
