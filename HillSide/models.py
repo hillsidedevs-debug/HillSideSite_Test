@@ -4,6 +4,8 @@ from flask_login import UserMixin
 from datetime import datetime
 from enum import Enum as PyEnum
 from sqlalchemy import Enum
+from itsdangerous import URLSafeTimedSerializer
+from  flask import current_app
 
 
 
@@ -27,7 +29,7 @@ class GenderEnum(PyEnum):
 class User(db.Model, UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
-
+    is_verified = db.Column(db.Boolean, default=False)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
 
@@ -64,6 +66,18 @@ class User(db.Model, UserMixin):
 
     def is_staff(self):
         return self.role in (RoleEnum.STAFF, RoleEnum.ADMIN)
+    def get_reset_token(self):
+        s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        return s.dumps(self.email, salt='password-reset-salt')
+    
+    @staticmethod
+    def verify_reset_token(token, expiration=3600):
+        s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        try:
+            email = s.loads(token, salt='password-reset-salt', max_age=expiration)
+        except:
+            return None
+        return User.query.filter_by(email=email).first()
 
 
 class Course(db.Model):

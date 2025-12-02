@@ -2,11 +2,19 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from HillSide.forms.register_form import RegisterForm
 from HillSide.forms.login_form import LoginForm
+from HillSide.forms.forgot_password_form import ForgotPasswordForm
+from HillSide.forms.reset_password_form import ResetPasswordForm
 from HillSide.extensions import db, bcrypt
 from HillSide.models import User, Enrollment
 import os
 from werkzeug.utils import secure_filename
 from sqlalchemy.exc import IntegrityError
+from HillSide.utils import send_reset_email, send_verification_email
+from HillSide.config import Config
+
+from itsdangerous import URLSafeTimedSerializer
+
+serializer = URLSafeTimedSerializer(Config.SECRET_KEY)
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -19,7 +27,7 @@ def register():
         # Hash password
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
 
-        # Create user object
+        # Create user object (unverified by default)
         user = User(
             first_name=form.first_name.data,
             last_name=form.last_name.data,
@@ -30,6 +38,7 @@ def register():
             address=form.address.data,
             gender=form.gender.data if form.gender.data else None,
             education_qualification=form.education_qualification.data,
+            is_verified=False  # 🔥 IMPORTANT
         )
 
         # Handle profile photo upload
@@ -48,13 +57,16 @@ def register():
         try:
             db.session.add(user)
             db.session.commit()
-            flash("Registration successful!", "success")
-            return redirect(url_for('main.index'))
+
+            # 🔥 SEND VERIFICATION EMAIL HERE
+            send_verification_email(user)
+
+            flash("Registration successful! Please check your email to verify your account.", "info")
+            return redirect(url_for('auth.login'))
 
         except IntegrityError as e:
             db.session.rollback()
 
-            # Detect which field caused the unique error
             if "email" in str(e.orig):
                 flash("Email already exists. Please use a different one.", "danger")
             elif "username" in str(e.orig):
@@ -65,31 +77,36 @@ def register():
     return render_template("register.html", form=form)
 
 
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    print(form.errors)
-    print(request.method)
-    print(form.data)
 
-    print("outside")
     if form.validate_on_submit():
-        print("validated")
-
         email = form.email.data
         password = form.password.data
 
         user = User.query.filter_by(email=email).first()
 
-        if user and bcrypt.check_password_hash(user.password, password):
+        # 1. Check if user exists
+        if not user:
+            flash('Invalid email or password', 'danger')
+            return render_template('login.html', form=form)
+
+        # 2. Check if user is verified
+        if not user.is_verified:
+            flash('Please verify your email before logging in.', 'warning')
+            return render_template('login.html', form=form)
+
+        # 3. Check password
+        if bcrypt.check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('main.index'))
         else:
             flash('Invalid email or password', 'danger')
-    else:
-        print("validation failed", form.errors)
-    
+
     return render_template('login.html', form=form)
+
 
 @auth_bp.route("/dashboard")
 @login_required
@@ -136,3 +153,57 @@ def update_profile():
         return redirect(url_for('auth.dashboard'))
 
     return redirect(url_for('auth.dashboard'))  # GET just shows the tab
+
+@auth_bp.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user:
+            send_reset_email(user)
+        flash("If this email exists, a reset link has been sent.", "info")
+        return redirect(url_for("auth.login"))
+    return render_template("forgot_password.html", form=form)
+
+
+@auth_bp.route("/reset_password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    user = User.verify_reset_token(token)
+    if not user:
+        flash("Invalid or expired token.", "warning")
+        return redirect(url_for("auth.forgot_password"))
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_pw = bcrypt.generate_password_hash(form.password.data)
+        user.password = hashed_pw
+        db.session.commit()
+        flash("Your password has been updated!", "success")
+        return redirect(url_for("auth.login"))
+
+    return render_template("reset_password.html", form=form)
+
+@auth_bp.route('/verify/<token>')
+def verify_email(token):
+    try:
+        email = serializer.loads(token, salt="email-verify", max_age=3600)
+    except Exception:
+        flash("The verification link is invalid or expired.", "danger")
+        return redirect(url_for('auth.login'))
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for('auth.login'))
+
+    if user.is_verified:
+        flash("Your account is already verified. Please log in.", "info")
+        return redirect(url_for('auth.login'))
+
+    user.is_verified = True
+    db.session.commit()
+
+    flash("Your email has been verified! You can now log in.", "success")
+    return redirect(url_for('auth.login'))
+
