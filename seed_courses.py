@@ -23,11 +23,40 @@ def seed_courses(n=30):
         course = Course(
             title=f"{choice(categories)} - {fake.catch_phrase()}",
             description=fake.paragraph(nb_sentences=8),
-            image=None,  # or fake.image_url() if you want placeholders
+            image=None,
+            video=None,
             start_date=start_date,
             duration_weeks=duration,
-            total_seats=randint(10, 100) if randint(1, 10) != 1 else None  # 10% unlimited seats
+            total_seats=randint(10, 100) if randint(1, 10) != 1 else None,
+
+            who_is_this_for="\n".join([
+                "Beginners who want structured guidance",
+                "Students looking for practical, real-world skills",
+                "Anyone serious about learning and applying concepts"
+            ]),
+
+            learning_outcomes="\n".join([
+                "Understand core concepts clearly",
+                "Build practical projects",
+                "Apply skills to real-world scenarios"
+            ]),
+
+            course_structure="\n".join([
+                "Weekly lessons",
+                "Hands-on assignments",
+                "Progress tracking"
+            ]),
+
+            instructor_name=fake.name(),
+            instructor_bio=fake.paragraph(nb_sentences=3),
+
+            faqs="\n".join([
+                "Is this live or recorded?|Details will be shared after enrollment",
+                "Do I need prior experience?|No prior experience is required",
+                "Will I get a certificate?|Yes, after successful completion"
+            ])
         )
+
         courses.append(course)
     
     db.session.bulk_save_objects(courses)

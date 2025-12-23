@@ -3,47 +3,114 @@
 {% block content %}
 <div class="container my-5">
   <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
+
       <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body p-4">
+        <div class="card-body p-4 p-lg-5">
+
           <h2 class="fw-bold mb-3 text-center">Add a New Course</h2>
-          <p class="text-muted text-center mb-4">Fill out the form below to add a new course.</p>
-            <form action="{{ url_for('courses.add_course') }}" method="POST" enctype="multipart/form-data" class="p-4 shadow-sm bg-white rounded-4">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Course Title</label>
-                    <input type="text" class="form-control" name="title" required>
-                </div>
+          <p class="text-muted text-center mb-4">
+            Fill out the form below to add a new course.
+          </p>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Description</label>
-                    <textarea class="form-control" name="description" rows="4"></textarea>
-                </div>
+          <form
+            action="{{ url_for('courses.add_course') }}"
+            method="POST"
+            enctype="multipart/form-data"
+            class="bg-white"
+          >
 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                    <label class="form-label fw-semibold">Start Date</label>
-                    <input type="date" class="form-control" name="start_date">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                    <label class="form-label fw-semibold">Duration (weeks)</label>
-                    <input type="number" class="form-control" name="duration_weeks" min="1">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                    <label class="form-label fw-semibold">Total Seats</label>
-                    <input type="number" class="form-control" name="total_seats" min="1">
-                    </div>
-                </div>
+            {# ===== BASIC INFO ===== #}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Course Title</label>
+              <input type="text" class="form-control" name="title" required>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Course Image</label>
-                    <input type="file" class="form-control" name="image">
-                </div>
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea class="form-control" name="description" rows="4"></textarea>
+            </div>
 
-                <button type="submit" class="btn btn-primary rounded-pill px-4 mt-2">Add Course</button>
-            </form>
+            {# ===== META ===== #}
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Start Date</label>
+                <input type="date" class="form-control" name="start_date">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Duration (weeks)</label>
+                <input type="number" class="form-control" name="duration_weeks" min="1">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Total Seats</label>
+                <input type="number" class="form-control" name="total_seats" min="1">
+              </div>
+            </div>
+
+            {# ===== IMAGE ===== #}
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Course Image</label>
+              <input type="file" class="form-control" name="image">
+            </div>
+
+            <hr class="my-4">
+
+            {# ===== DYNAMIC CONTENT ===== #}
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Who this course is for</label>
+              <textarea class="form-control" name="who_is_this_for" rows="3"
+                placeholder="One item per line"></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Learning outcomes</label>
+              <textarea class="form-control" name="learning_outcomes" rows="3"
+                placeholder="One item per line"></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Course structure</label>
+              <textarea class="form-control" name="course_structure" rows="3"
+                placeholder="One item per line"></textarea>
+            </div>
+
+            <hr class="my-4">
+
+            {# ===== INSTRUCTOR ===== #}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Instructor Name</label>
+              <input type="text" class="form-control" name="instructor_name">
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Instructor Bio</label>
+              <textarea class="form-control" name="instructor_bio" rows="3"></textarea>
+            </div>
+
+            <hr class="my-4">
+
+            {# ===== FAQ ===== #}
+            <div class="mb-4">
+              <label class="form-label fw-semibold">FAQs</label>
+              <textarea
+                class="form-control"
+                name="faqs"
+                rows="4"
+                placeholder="Question?|Answer (one per line)"
+              ></textarea>
+            </div>
+
+            <div class="text-center">
+              <button type="submit" class="btn btn-primary rounded-pill px-5 mt-3">
+                Add Course
+              </button>
+            </div>
+
+          </form>
 
         </div>
       </div>
+
     </div>
   </div>
 </div>

@@ -3,11 +3,24 @@ from flask_mail import Mail
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 db = SQLAlchemy()
 mail = Mail()
 bcrypt = Bcrypt()
-login_manager = LoginManager()
-migrate = Migrate()
 
-login_manager.login_view = 'auth.login'
+login_manager = LoginManager()
+login_manager.login_view = "auth.login"
+login_manager.login_message_category = "warning"
+login_manager.session_protection = "strong"
+
+csrf = CSRFProtect()
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
+
+migrate = Migrate()

@@ -1,43 +1,159 @@
 {% extends "basic.html" %}
+
 {% block content %}
-<div class="container py-5">
-  <div class="col-md-8 mx-auto">
-    <div class="card shadow-sm border-0 rounded-4">
-      <div class="card-body">
-        <h3 class="fw-bold mb-4">Edit Course</h3>
-        <form method="POST">
-          <div class="mb-3">
-            <label class="form-label">Course Title</label>
-            <input type="text" class="form-control" name="title" value="{{ course.title }}" required>
-          </div>
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
 
-          <div class="mb-3">
-            <label class="form-label">Description</label>
-            <textarea class="form-control" name="description" rows="4">{{ course.description }}</textarea>
-          </div>
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4 p-lg-5">
 
-          <div class="row mb-3">
-            <div class="col">
-              <label class="form-label">Start Date</label>
-              <input type="date" class="form-control" name="start_date" value="{{ course.start_date.strftime('%Y-%m-%d') }}" required>
+          <h3 class="fw-bold mb-4">Edit Course</h3>
+
+          <form method="POST">
+
+            {# ===== BASIC INFO ===== #}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Course Title</label>
+              <input
+                type="text"
+                class="form-control"
+                name="title"
+                value="{{ course.title }}"
+                required
+              >
             </div>
-            <div class="col">
-              <label class="form-label">Duration (e.g. 8 weeks)</label>
-              <input type="text" class="form-control" name="duration" value="{{ course.duration }}" required>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Description</label>
+              <textarea
+                class="form-control"
+                name="description"
+                rows="4"
+              >{{ course.description }}</textarea>
             </div>
-          </div>
 
-          <div class="mb-3">
-            <label class="form-label">Total Seats</label>
-            <input type="number" class="form-control" name="total_seats" value="{{ course.total_seats }}" required>
-          </div>
+            {# ===== META ===== #}
+            <div class="row mb-4">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Start Date</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  name="start_date"
+                  value="{{ course.start_date.strftime('%Y-%m-%d') if course.start_date }}"
+                >
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Duration (weeks)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="duration_weeks"
+                  min="1"
+                  value="{{ course.duration_weeks }}"
+                >
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Total Seats</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="total_seats"
+                  min="1"
+                  value="{{ course.total_seats }}"
+                >
+              </div>
+            </div>
 
-          <div class="text-end">
-            <a href="{{ url_for('admin.manage_courses') }}" class="btn btn-outline-secondary rounded-4 me-2">Cancel</a>
-            <button type="submit" class="btn btn-success px-4 rounded-4">Save Changes</button>
-          </div>
-        </form>
+            <hr class="my-4">
+
+            {# ===== DYNAMIC CONTENT ===== #}
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Who this course is for</label>
+              <textarea
+                class="form-control"
+                name="who_is_this_for"
+                rows="3"
+              >{{ course.who_is_this_for }}</textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Learning outcomes</label>
+              <textarea
+                class="form-control"
+                name="learning_outcomes"
+                rows="3"
+              >{{ course.learning_outcomes }}</textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Course structure</label>
+              <textarea
+                class="form-control"
+                name="course_structure"
+                rows="3"
+              >{{ course.course_structure }}</textarea>
+            </div>
+
+            <hr class="my-4">
+
+            {# ===== INSTRUCTOR ===== #}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Instructor Name</label>
+              <input
+                type="text"
+                class="form-control"
+                name="instructor_name"
+                value="{{ course.instructor_name }}"
+              >
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Instructor Bio</label>
+              <textarea
+                class="form-control"
+                name="instructor_bio"
+                rows="3"
+              >{{ course.instructor_bio }}</textarea>
+            </div>
+
+            <hr class="my-4">
+
+            {# ===== FAQs ===== #}
+            <div class="mb-4">
+              <label class="form-label fw-semibold">FAQs</label>
+              <textarea
+                class="form-control"
+                name="faqs"
+                rows="4"
+              >{{ course.faqs }}</textarea>
+              <div class="form-text">
+                One per line. Format: Question?|Answer
+              </div>
+            </div>
+
+            {# ===== ACTIONS ===== #}
+            <div class="d-flex justify-content-end gap-2">
+              <a
+                href="{{ url_for('admin.manage_courses') }}"
+                class="btn btn-outline-secondary rounded-pill px-4"
+              >
+                Cancel
+              </a>
+              <button
+                type="submit"
+                class="btn btn-success rounded-pill px-4"
+              >
+                Save Changes
+              </button>
+            </div>
+
+          </form>
+
+        </div>
       </div>
+
     </div>
   </div>
 </div>

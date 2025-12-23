@@ -9,26 +9,56 @@ from HillSide.extensions import db, bcrypt
 from HillSide.models import User, RoleEnum, Course
 
 
-@pytest.fixture(scope="function")  # ← Important: fresh DB for each test
-def app():
+
+@pytest.fixture(scope="function")
+def app(tmp_path): # 👈 ADD tmp_path as an argument here
+
+    # --- Start of new/modified code ---
+    # 1. Create a temporary SQLite file path
+    db_path = tmp_path / "test_db.sqlite"
 
     app_config = {
         "TESTING": True,
         "SECRET_KEY": "test-secret",
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        # 2. Use the file path instead of :memory:
+        "SQLALCHEMY_DATABASE_URI": f"sqlite:///{db_path}",
+        # ... rest of config ...
         "WTF_CSRF_ENABLED": False,
         "UPLOAD_FOLDER_PHOTOS": "/tmp/photos",
         "UPLOAD_FOLDER_RESUMES": "/tmp/resumes",
     }
-        
-    app = create_app(app_config)
+    # --- End of new/modified code ---
 
+    app = create_app(app_config)
+    # ... rest of fixture ...
 
     with app.app_context():
+        print("Creating database tables for test...")
         db.create_all()
         yield app
         db.drop_all()
         db.session.remove()
+
+# @pytest.fixture(scope="function")  # ← Important: fresh DB for each test
+# def app():
+
+#     app_config = {
+#         "TESTING": True,
+#         "SECRET_KEY": "test-secret",
+#         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+#         "WTF_CSRF_ENABLED": False,
+#         "UPLOAD_FOLDER_PHOTOS": "/tmp/photos",
+#         "UPLOAD_FOLDER_RESUMES": "/tmp/resumes",
+#     }
+        
+#     app = create_app(app_config)
+
+
+#     with app.app_context():
+#         db.create_all()
+#         yield app
+#         db.drop_all()
+#         db.session.remove()
 
 
 @pytest.fixture
@@ -64,7 +94,8 @@ def sample_user():
         username="testuser",
         email="user@example.com",
         password="hashed",
-        role=RoleEnum.USER
+        role=RoleEnum.USER,
+        is_verified=True,
     )
     db.session.add(user)
     db.session.commit()
@@ -96,6 +127,7 @@ def regular_user(client, app):
             email="charlie@example.com",
             password=bcrypt.generate_password_hash("testpass123").decode("utf-8"),
             role=RoleEnum.USER,
+            is_verified=True,
         )
         db.session.add(user)
         db.session.commit()
@@ -123,7 +155,8 @@ def admin_user(app):
             password=bcrypt.generate_password_hash("password").decode("utf-8"),
             first_name="Admin",
             last_name="User",
-            role=RoleEnum.ADMIN
+            role=RoleEnum.ADMIN,
+            is_verified=True,
         )
         db.session.add(user)
         db.session.commit()

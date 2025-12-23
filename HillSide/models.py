@@ -82,23 +82,37 @@ class User(db.Model, UserMixin):
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     title = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text, nullable=True)
+
     image = db.Column(db.String(255), nullable=True)
+    video = db.Column(db.String(255), nullable=True)
 
     start_date = db.Column(db.Date, nullable=True)
     duration_weeks = db.Column(db.Integer, nullable=True)
     total_seats = db.Column(db.Integer, nullable=True)
 
-    enrollments = db.relationship('Enrollment', back_populates='course', cascade='all, delete-orphan')
+    # 👇 NEW FIELDS
+    who_is_this_for = db.Column(db.Text, nullable=True)
+    learning_outcomes = db.Column(db.Text, nullable=True)
+    course_structure = db.Column(db.Text, nullable=True)
 
-    def __repr__(self):
-        return f'<Course {self.title}>'
+    instructor_name = db.Column(db.String(150), nullable=True)
+    instructor_bio = db.Column(db.Text, nullable=True)
+
+    faqs = db.Column(db.Text, nullable=True)
+
+    enrollments = db.relationship(
+        'Enrollment',
+        back_populates='course',
+        cascade='all, delete-orphan'
+    )
 
     @property
     def seats_left(self):
-        """Returns how many seats are still available."""
         return self.total_seats - len(self.enrollments) if self.total_seats else None
+
 
 class Enrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)

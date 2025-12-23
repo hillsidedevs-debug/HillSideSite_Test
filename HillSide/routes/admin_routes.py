@@ -156,6 +156,24 @@ def remove_enrollment(enrollment_id):
 
 
 
+# @admin_bp.route('/course/edit/<int:course_id>', methods=['GET', 'POST'])
+# @login_required
+# @admin_required
+# def edit_course(course_id):
+#     course = Course.query.get_or_404(course_id)
+
+#     if request.method == 'POST':
+#         course.title = request.form['title']
+#         course.description = request.form['description']
+#         course.start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
+#         course.duration_weeks = request.form['duration']
+#         course.total_seats = int(request.form['total_seats'])
+#         db.session.commit()
+#         flash('✅ Course updated successfully!', 'success')
+#         return redirect(url_for('admin.manage_courses'))
+
+#     return render_template('edit_course.html', course=course)
+
 @admin_bp.route('/course/edit/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -163,16 +181,36 @@ def edit_course(course_id):
     course = Course.query.get_or_404(course_id)
 
     if request.method == 'POST':
-        course.title = request.form['title']
-        course.description = request.form['description']
-        course.start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
-        course.duration_weeks = request.form['duration']
-        course.total_seats = int(request.form['total_seats'])
+        course.title = request.form.get('title')
+        course.description = request.form.get('description')
+
+        start_date_str = request.form.get('start_date')
+        course.start_date = (
+            datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            if start_date_str else None
+        )
+
+        duration_weeks = request.form.get('duration_weeks')
+        total_seats = request.form.get('total_seats')
+
+        course.duration_weeks = int(duration_weeks) if duration_weeks else None
+        course.total_seats = int(total_seats) if total_seats else None
+
+        course.who_is_this_for = request.form.get('who_is_this_for')
+        course.learning_outcomes = request.form.get('learning_outcomes')
+        course.course_structure = request.form.get('course_structure')
+
+        course.instructor_name = request.form.get('instructor_name')
+        course.instructor_bio = request.form.get('instructor_bio')
+
+        course.faqs = request.form.get('faqs')
+
         db.session.commit()
         flash('✅ Course updated successfully!', 'success')
         return redirect(url_for('admin.manage_courses'))
 
     return render_template('edit_course.html', course=course)
+
 
 # @admin_bp.route('/staff/edit/<int:staff_id>', methods=['GET', 'POST'])
 # @login_required
@@ -379,5 +417,44 @@ def edit_user(user_id):
 @admin_bp.route("/users")
 def list_users():
     from HillSide.models import User
+
     users = User.query.all()
-    return "<br>".join([f"{u.id} - {u.username} - {u.email} - {u.is_staff()}" for u in users])
+
+    html = """
+    <h2>User List</h2>
+    <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Verified</th>
+                <th>Role</th>
+                <th>Gender</th>
+                <th>Created</th>
+                <th>Enrollments</th>
+            </tr>
+        </thead>
+        <tbody>
+    """
+
+    for u in users:
+        html += f"""
+        <tr>
+            <td>{u.id}</td>
+            <td>{u.username}</td>
+            <td>{u.email}</td>
+            <td>{'✔️' if u.is_verified else '❌'}</td>
+            <td>{u.role.value}</td>
+            <td>{u.gender.value if u.gender else ''}</td>
+            <td>{u.created_at.strftime('%Y-%m-%d')}</td>
+            <td>{len(u.enrollments)}</td>
+        </tr>
+        """
+
+    html += """
+        </tbody>
+    </table>
+    """
+
+    return html

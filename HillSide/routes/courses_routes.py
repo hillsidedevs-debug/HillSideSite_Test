@@ -18,6 +18,11 @@ courses_bp = Blueprint('courses', __name__)
 
 UPLOAD_FOLDER = 'static/uploads/courses'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov'}
+
+def allowed_video(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_VIDEO_EXTENSIONS
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -35,12 +40,24 @@ import os
 def add_course():
     if request.method == 'POST':
         title = request.form['title']
-        description = request.form['description']
+        description = request.form.get('description')
+
         start_date_str = request.form.get('start_date')
         duration_weeks = request.form.get('duration_weeks')
         total_seats = request.form.get('total_seats')
 
-        # Parse date
+        who_is_this_for = request.form.get('who_is_this_for')
+        learning_outcomes = request.form.get('learning_outcomes')
+        course_structure = request.form.get('course_structure')
+
+        instructor_name = request.form.get('instructor_name')
+        instructor_bio = request.form.get('instructor_bio')
+
+        faqs = request.form.get('faqs')
+
+        # ---------------------------
+        # PARSE DATE
+        # ---------------------------
         start_date = (
             datetime.strptime(start_date_str, '%Y-%m-%d').date()
             if start_date_str else None
@@ -53,24 +70,20 @@ def add_course():
         image_filename = None
 
         if image_file and image_file.filename:
-            # Validate extension
             ext = image_file.filename.rsplit('.', 1)[-1].lower()
             if ext not in {'png', 'jpg', 'jpeg', 'gif'}:
                 flash("❌ Invalid image format.", "danger")
                 return redirect(url_for("courses.add_course"))
 
-            # Ensure upload folder exists
-            upload_folder = os.path.join(current_app.root_path, "static/uploads/courses")
+            upload_folder = os.path.join(
+                current_app.root_path, "static/uploads/courses"
+            )
             os.makedirs(upload_folder, exist_ok=True)
 
-            # Generate safe + unique filename
             original = secure_filename(image_file.filename)
             unique_name = f"{uuid.uuid4().hex}_{original}"
 
-            # Save file
-            save_path = os.path.join(upload_folder, unique_name)
-            image_file.save(save_path)
-
+            image_file.save(os.path.join(upload_folder, unique_name))
             image_filename = unique_name
 
         # ---------------------------
@@ -82,7 +95,16 @@ def add_course():
             start_date=start_date,
             duration_weeks=int(duration_weeks) if duration_weeks else None,
             total_seats=int(total_seats) if total_seats else None,
-            image=image_filename
+            image=image_filename,
+
+            who_is_this_for=who_is_this_for,
+            learning_outcomes=learning_outcomes,
+            course_structure=course_structure,
+
+            instructor_name=instructor_name,
+            instructor_bio=instructor_bio,
+
+            faqs=faqs
         )
 
         db.session.add(course)
@@ -92,6 +114,7 @@ def add_course():
         return redirect(url_for('courses.list_courses'))
 
     return render_template('add_course.html')
+
 
 
 
@@ -114,6 +137,44 @@ def course_details(course_id):
     course = Course.query.get_or_404(course_id)
     return render_template('course_details.html', course=course)
 
+@courses_bp.route('/courses/<int:course_id>/upload-video', methods=['POST'])
+@login_required
+def upload_course_video(course_id):
+    # if not current_user.is_staff():
+    #     flash('Unauthorized', 'danger')
+    #     return redirect(url_for('courses.course_details', course_id=course_id))
+
+    course = Course.query.get_or_404(course_id)
+
+    if 'video' not in request.files:
+        flash('No video file provided', 'danger')
+        return redirect(url_for('courses.course_details', course_id=course_id))
+
+    file = request.files['video']
+
+    if file.filename == '':
+        flash('No selected file', 'danger')
+        return redirect(url_for('courses.course_details', course_id=course_id))
+
+    if not allowed_video(file.filename):
+        flash('Invalid video format', 'danger')
+        return redirect(url_for('courses.course_details', course_id=course_id))
+
+    filename = secure_filename(file.filename)
+
+    upload_folder = os.path.join(
+        current_app.root_path,
+        'static/uploads/courses/videos'
+    )
+    os.makedirs(upload_folder, exist_ok=True)
+
+    file.save(os.path.join(upload_folder, filename))
+
+    course.video = filename
+    db.session.commit()
+
+    flash('Course intro video uploaded successfully', 'success')
+    return redirect(url_for('courses.course_details', course_id=course_id))
 
 @courses_bp.route('/courses/<int:course_id>/enroll', methods=['POST'])
 @login_required

@@ -1,6 +1,8 @@
 {% extends "basic.html" %}
 
 {% block content %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
 <section class="py-5 text-center bg-light">
   <div class="container">
     <h1 class="display-4 fw-bold">Get in Touch</h1>
@@ -44,6 +46,13 @@
             {% endfor %}
           </div>
 
+          <!-- reCAPTCHA widget -->
+          <div class="form-group">
+              {{ form.recaptcha }}
+              {% if form.recaptcha.errors %}
+                  <span class="text-danger">Please complete the reCAPTCHA.</span>
+              {% endif %}
+          </div>
           <div class="d-grid">
             {{ form.submit(class="btn btn-primary btn-lg") }}
           </div>

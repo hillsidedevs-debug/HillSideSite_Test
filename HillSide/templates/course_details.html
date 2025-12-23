@@ -3,63 +3,194 @@
 {% block content %}
 <div class="container my-5">
   <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-9">
+
       <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+
+        {# ================= COURSE IMAGE ================= #}
         {% if course.image %}
         <img
           src="{{ url_for('static', filename='uploads/courses/' ~ course.image) }}"
           class="card-img-top"
-          style="height: 300px; object-fit: cover;"
+          style="height: 320px; object-fit: cover;"
           alt="{{ course.title }}"
         />
         {% endif %}
 
-        <div class="card-body p-4">
-          <h2 class="fw-bold mb-3">{{ course.title }}</h2>
-          <p><strong>Start Date:</strong> {{ course.start_date.strftime('%B %d, %Y') if course.start_date else 'TBA' }}</p>
-          <p><strong>Duration:</strong> {{ course.duration_weeks or 'N/A' }} weeks</p>
-          <p><strong>Total Seats:</strong> {{ course.total_seats or 'N/A' }}</p>
-          <p><strong>Seats Left:</strong> {{ course.seats_left if course.total_seats else 'N/A' }}</p>
+        <div class="card-body p-4 p-lg-5">
 
-          <p class="text-muted">{{ course.description }}</p>
+          {# ================= TITLE ================= #}
+          <h2 class="fw-bold mb-4">{{ course.title }}</h2>
 
+          {# ================= INTRO VIDEO ================= #}
+          <div class="mb-5">
+            <video
+              class="w-100 rounded-4 shadow-sm"
+              controls
+              preload="metadata"
+              style="max-height: 420px; object-fit: cover;"
+            >
+              <source
+                src="{{ url_for('static', filename='uploads/courses/videos/' ~ course.video) if course.video else url_for('static', filename='default/video.mp4') }}"
+                type="video/mp4"
+              >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+
+          {# ================= VIDEO UPLOAD (ADMIN / STAFF) ================= #}
+          {% if current_user.is_authenticated and current_user.is_admin() %}
+          <form
+            method="POST"
+            action="{{ url_for('courses.upload_course_video', course_id=course.id) }}"
+            enctype="multipart/form-data"
+            class="mb-5"
+          >
+            <label class="form-label fw-semibold">
+              Upload / Replace Course Intro Video
+            </label>
+            <input
+              type="file"
+              name="video"
+              accept="video/mp4,video/webm,video/mov"
+              class="form-control"
+              required
+            >
+            <div class="form-text">
+              Short intro video explaining how you teach and what students should expect.
+            </div>
+            <button class="btn btn-outline-primary rounded-pill mt-3">
+              Upload Video
+            </button>
+          </form>
+          {% endif %}
+
+          {# ================= COURSE META ================= #}
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <p><strong>Start Date:</strong> {{ course.start_date.strftime('%B %d, %Y') if course.start_date else 'TBA' }}</p>
+              <p><strong>Duration:</strong> {{ course.duration_weeks or 'N/A' }} weeks</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Total Seats:</strong> {{ course.total_seats or 'N/A' }}</p>
+              <p><strong>Seats Left:</strong> {{ course.seats_left if course.total_seats else 'N/A' }}</p>
+            </div>
+          </div>
+
+          {# ================= DESCRIPTION ================= #}
+          {% if course.description %}
+          <p class="text-muted mb-5">
+            {{ course.description }}
+          </p>
+          {% endif %}
+
+          {# ================= WHO THIS COURSE IS FOR ================= #}
+          {% if course.who_is_this_for %}
+          <div class="mb-5">
+            <h5 class="fw-semibold mb-2">Who this course is for</h5>
+            <ul class="mb-0">
+              {% for item in course.who_is_this_for.split('\n') %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {# ================= LEARNING OUTCOMES ================= #}
+          {% if course.learning_outcomes %}
+          <div class="mb-5">
+            <h5 class="fw-semibold mb-2">What you’ll learn</h5>
+            <ul class="mb-0">
+              {% for item in course.learning_outcomes.split('\n') %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {# ================= COURSE STRUCTURE ================= #}
+          {% if course.course_structure %}
+          <div class="mb-5">
+            <h5 class="fw-semibold mb-2">Course structure</h5>
+            <ul class="mb-0">
+              {% for item in course.course_structure.split('\n') %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {# ================= INSTRUCTOR ================= #}
+          {% if course.instructor_name %}
+          <div class="mb-5">
+            <h5 class="fw-semibold mb-2">Instructor</h5>
+            <p class="fw-semibold mb-1">{{ course.instructor_name }}</p>
+            {% if course.instructor_bio %}
+            <p class="text-muted mb-0">{{ course.instructor_bio }}</p>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {# ================= FAQs ================= #}
+          {% if course.faqs %}
+          <div class="mb-5">
+            <h5 class="fw-semibold mb-2">FAQs</h5>
+            {% for faq in course.faqs.split('\n') %}
+              {% set parts = faq.split('|') %}
+              {% if parts|length == 2 %}
+              <p class="mb-2">
+                <strong>{{ parts[0] }}</strong><br>
+                {{ parts[1] }}
+              </p>
+              {% endif %}
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          {# ================= FLASH MESSAGES ================= #}
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
               {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show mt-3" role="alert">
+                <div class="alert alert-{{ category }} alert-dismissible fade show mb-4" role="alert">
                   {{ message }}
                   <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
               {% endfor %}
             {% endif %}
           {% endwith %}
+
+          {# ================= ENROLL ================= #}
           {% if current_user.is_authenticated and not current_user.is_admin() %}
-            <form method="POST" action="{{ url_for('courses.enroll_course', course_id=course.id) }}">
-              <div class="mb-3">
-                <label for="city_town" class="form-label fw-semibold">
-                  Which city/town are you joining from?
-                </label>
-                <input
-                  type="text"
-                  class="form-control"
-                  id="city_town"
-                  name="city_town"
-                  placeholder="e.g. Nairobi, Lagos, Accra, Mumbai..."
-                  required
-                />
-                <div class="form-text">This helps us know where our students are from</div>
+          <form method="POST" action="{{ url_for('courses.enroll_course', course_id=course.id) }}">
+            <div class="mb-3">
+              <label for="city_town" class="form-label fw-semibold">
+                Which city/town are you joining from?
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="city_town"
+                name="city_town"
+                placeholder="e.g. Nairobi, Lagos, Accra, Mumbai..."
+                required
+              />
+              <div class="form-text">
+                This helps us understand where our students are from.
               </div>
-              <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">
-                <i class="bi bi-box-arrow-in-right me-2"></i> Enroll in Course
-              </button>
-            </form>
-            {% else %}
-            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary rounded-pill px-4 mt-3">
-              <i class="bi bi-box-arrow-in-right me-2"></i> Login to Enroll
-            </a>
+            </div>
+            <button type="submit" class="btn btn-primary rounded-pill px-4 mt-3">
+              <i class="bi bi-box-arrow-in-right me-2"></i> Enroll in Course
+            </button>
+          </form>
+          {% else %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary rounded-pill px-4 mt-3">
+            <i class="bi bi-box-arrow-in-right me-2"></i> Login to Enroll
+          </a>
           {% endif %}
+
         </div>
       </div>
+
     </div>
   </div>
 </div>

@@ -14,16 +14,19 @@ from HillSide.config import Config
 
 from itsdangerous import URLSafeTimedSerializer
 
-serializer = URLSafeTimedSerializer(Config.SECRET_KEY)
+def get_serializer():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
+    print("Register route accessed")
     form = RegisterForm()
 
     if form.validate_on_submit():
-
+        print("Register route accessed - form validated")
         # Hash password
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
 
@@ -58,8 +61,13 @@ def register():
             db.session.add(user)
             db.session.commit()
 
-            # 🔥 SEND VERIFICATION EMAIL HERE
-            send_verification_email(user)
+            if current_app.config.get("TESTING") or not current_app.config.get("ENABLE_EMAIL_VERIFICATION", True):
+                user.is_verified = True   # auto-verify in tests
+                print("Auto-verified user in testing mode.")
+            else:
+                send_verification_email(user)
+                print("sent verification email")
+
 
             flash("Registration successful! Please check your email to verify your account.", "info")
             return redirect(url_for('auth.login'))
@@ -179,13 +187,16 @@ def forgot_password():
 
 @auth_bp.route("/reset_password/<token>", methods=["GET", "POST"])
 def reset_password(token):
+    print("Reset password route accessed")
     user = User.verify_reset_token(token)
     if not user:
+        print("No user available")
         flash("Invalid or expired token.", "warning")
         return redirect(url_for("auth.forgot_password"))
 
     form = ResetPasswordForm()
     if form.validate_on_submit():
+        print("token form validated")
         hashed_pw = bcrypt.generate_password_hash(form.password.data)
         user.password = hashed_pw
         db.session.commit()
@@ -197,7 +208,7 @@ def reset_password(token):
 @auth_bp.route('/verify/<token>')
 def verify_email(token):
     try:
-        email = serializer.loads(token, salt="email-verify", max_age=3600)
+        email = get_serializer().loads(token, salt="email-verify", max_age=3600)
     except Exception:
         flash("The verification link is invalid or expired.", "danger")
         return redirect(url_for('auth.login'))
