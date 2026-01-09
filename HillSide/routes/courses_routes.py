@@ -7,7 +7,7 @@ import os
 
 from HillSide.extensions import db
 from HillSide.models import Course, Enrollment
-from HillSide.utils import admin_required
+from HillSide.utils import admin_required, is_valid_file
 
 
 # from utils import admin_required
@@ -70,8 +70,7 @@ def add_course():
         image_filename = None
 
         if image_file and image_file.filename:
-            ext = image_file.filename.rsplit('.', 1)[-1].lower()
-            if ext not in {'png', 'jpg', 'jpeg', 'gif'}:
+            if not is_valid_file(image_file, 'image'):
                 flash("❌ Invalid image format.", "danger")
                 return redirect(url_for("courses.add_course"))
 

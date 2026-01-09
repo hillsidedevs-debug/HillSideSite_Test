@@ -1,36 +1,68 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
-from flask_login import login_user, logout_user, login_required, current_user
+from flask import (
+    Blueprint, render_template, redirect,
+    url_for, flash, request, current_app
+)
+from flask_login import (
+    login_user, logout_user,
+    login_required, current_user
+)
+from sqlalchemy.exc import IntegrityError
+from itsdangerous import URLSafeTimedSerializer
+import os
+
 from HillSide.forms.register_form import RegisterForm
 from HillSide.forms.login_form import LoginForm
 from HillSide.forms.forgot_password_form import ForgotPasswordForm
 from HillSide.forms.reset_password_form import ResetPasswordForm
-from HillSide.extensions import db, bcrypt
-from HillSide.models import User, Enrollment
-import os
-from werkzeug.utils import secure_filename
-from sqlalchemy.exc import IntegrityError
-from HillSide.utils import send_reset_email, send_verification_email
-from HillSide.config import Config
+from HillSide.forms.update_profile_form import UpdateProfileForm
 
-from itsdangerous import URLSafeTimedSerializer
+from HillSide.extensions import db, bcrypt, limiter
+from HillSide.models import User, Enrollment
+from HillSide.utils import (
+    send_reset_email,
+    send_verification_email,
+    generate_secure_filename,
+    is_valid_file
+)
+
+from flask import session 
+
+auth_bp = Blueprint("auth", __name__)
+
+
+# --------------------
+# Helpers
+# --------------------
 
 def get_serializer():
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
 
 
-auth_bp = Blueprint('auth', __name__)
+# --------------------
+# Register
+# --------------------
 
-@auth_bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route("/register", methods=["GET", "POST"])
+@limiter.limit("3 per minute")
 def register():
-    print("Register route accessed")
     form = RegisterForm()
 
     if form.validate_on_submit():
-        print("Register route accessed - form validated")
-        # Hash password
+        # 1. PRE-VALIDATE FILES (Strict MIME checking)
+        if form.photo.data:
+            if not is_valid_file(form.photo.data, 'image'):
+                flash("Invalid image. Only JPG and PNG are allowed.", "danger")
+                return render_template("register.html", form=form)
+
+        if form.resume.data:
+            if not is_valid_file(form.resume.data, 'pdf'):
+                flash("Invalid resume. Only PDF files are allowed.", "danger")
+                return render_template("register.html", form=form)
+
+        # 2. HASH PASSWORD
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
 
-        # Create user object (unverified by default)
+        # 3. INITIALIZE USER OBJECT
         user = User(
             first_name=form.first_name.data,
             last_name=form.last_name.data,
@@ -39,215 +71,287 @@ def register():
             password=hashed_password,
             phone_number=form.phone_number.data,
             address=form.address.data,
-            gender=form.gender.data if form.gender.data else None,
+            gender=form.gender.data or None,
             education_qualification=form.education_qualification.data,
-            is_verified=False  # 🔥 IMPORTANT
+            is_verified=False,
         )
 
-        # Handle profile photo upload
-        if form.photo.data:
-            photo_filename = secure_filename(form.photo.data.filename)
-            form.photo.data.save(os.path.join(current_app.root_path, "static/uploads/photos", photo_filename))
-            user.photo = photo_filename
-
-        # Handle resume upload
-        if form.resume.data:
-            resume_filename = secure_filename(form.resume.data.filename)
-            form.resume.data.save(os.path.join(current_app.root_path, "static/uploads/resumes", resume_filename))
-            user.resume = resume_filename
-
-        # Save user to DB
         try:
+            # 4. DATABASE SYNC & FILE SAVING
             db.session.add(user)
+            # Use flush() to check for IntegrityErrors (duplicate email/user) 
+            # before writing files to the disk
+            db.session.flush()
+
+            # Handle Photo
+            if form.photo.data:
+                filename = generate_secure_filename("photo", "jpg")
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], "photos", filename)
+                form.photo.data.save(path)
+                user.photo = filename
+
+            # Handle Resume
+            if form.resume.data:
+                filename = generate_secure_filename("resume", "pdf")
+                path = os.path.join(current_app.config["UPLOAD_FOLDER"], "resumes", filename)
+                form.resume.data.save(path)
+                user.resume = filename
+
+            # Final Commit
             db.session.commit()
 
-            if current_app.config.get("TESTING") or not current_app.config.get("ENABLE_EMAIL_VERIFICATION", True):
-                user.is_verified = True   # auto-verify in tests
-                print("Auto-verified user in testing mode.")
+            # 5. POST-REGISTRATION LOGIC
+            if current_app.config.get("TESTING"):
+                user.is_verified = True
+                db.session.commit()
             else:
                 send_verification_email(user)
-                print("sent verification email")
 
+            flash("Registration successful. Please verify your email.", "info")
+            return redirect(url_for("auth.login"))
 
-            flash("Registration successful! Please check your email to verify your account.", "info")
-            return redirect(url_for('auth.login'))
-
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
-
-            if "email" in str(e.orig):
-                flash("Email already exists. Please use a different one.", "danger")
-            elif "username" in str(e.orig):
-                flash("Username already exists. Please choose a different one.", "danger")
-            else:
-                flash("A database error occurred. Please try again.", "danger")
+            flash("Email or username already exists.", "danger")
 
     return render_template("register.html", form=form)
 
 
+# --------------------
+# Login
+# --------------------
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        email = form.email.data
-        password = form.password.data
+        user = User.query.filter_by(email=form.email.data).first()
 
-        user = User.query.filter_by(email=email).first()
+        if not user or not bcrypt.check_password_hash(
+            user.password, form.password.data
+        ):
+            flash("Invalid email or password.", "danger")
+            return render_template("login.html", form=form)
 
-        # ---- 1. User does not exist ----
-        if not user:
-            flash('Invalid email or password', 'danger')
-            return render_template('login.html', form=form)
-
-        # ---- 2. User exists but email NOT verified ----
         if not user.is_verified:
-            flash(
-                'Your account is not verified yet. Please check your email.',
-                'warning'
-            )
+            flash("Please verify your email before logging in.", "warning")
             return render_template(
-                'login.html',
-                form=form,
-                show_resend=True,   # <-- appears ONLY when needed
-                email=email         # <-- used by button
+                "login.html", form=form,
+                show_resend=True, email=user.email
             )
 
-        # ---- 3. Wrong password ----
-        if not bcrypt.check_password_hash(user.password, password):
-            flash('Invalid email or password', 'danger')
-            return render_template('login.html', form=form)
-
-        # ---- 4. Everything OK, log in ----
+        # SECURITY: Protect against Session Fixation
+        session.clear() # Wipe the old session
+        session.permanent = True # Enforce the lifetime set in config.py
+        
         login_user(user)
-        return redirect(url_for('main.index'))
+        return redirect(url_for("main.index"))
 
-    return render_template('login.html', form=form)
+    return render_template("login.html", form=form)
 
 
+# --------------------
+# Dashboard
+# --------------------
 
 @auth_bp.route("/dashboard")
 @login_required
 def dashboard():
-    enrollments = Enrollment.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', enrollments=enrollments)
+    enrollments = Enrollment.query.filter_by(
+        user_id=current_user.id
+    ).all()
+    return render_template("dashboard.html", enrollments=enrollments)
 
-@auth_bp.route("/logout")
+
+# --------------------
+# Logout
+# --------------------
+
+@auth_bp.route("/logout", methods=["POST"])
+@login_required
 def logout():
     logout_user()
-    return redirect(url_for('main.index'))
+    flash("You have been logged out.", "info")
+    return redirect(url_for("main.index"))
 
-@auth_bp.route('/profile', methods=['GET', 'POST'])
+
+# --------------------
+# Update Profile
+# --------------------
+
+@auth_bp.route("/profile", methods=["POST"])
+@limiter.limit("5 per minute")
 @login_required
 def update_profile():
-    if request.method == 'POST':
-        current_user.first_name = request.form['first_name']
-        current_user.last_name = request.form['last_name']
-        current_user.username = request.form['username']
-        current_user.email = request.form['email']
-        current_user.phone_number = request.form.get('phone_number') or None
-        current_user.gender = request.form.get('gender') or None
-        current_user.education_qualification = request.form.get('education_qualification') or None
-        current_user.address = request.form.get('address') or None
+    form = UpdateProfileForm()
+    
+    # We validate but skip the password re-auth per your request
+    if not form.validate_on_submit():
+        flash("Invalid input. Please correct the errors.", "danger")
+        return redirect(url_for("auth.dashboard"))
 
-        # Handle photo upload
-        if 'photo' in request.files:
-            file = request.files['photo']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(current_app.root_path, "static/uploads/photos", filename))
-                current_user.photo = filename
+    # Update basic fields
+    current_user.first_name = form.first_name.data
+    current_user.last_name = form.last_name.data
+    current_user.phone_number = form.phone_number.data
+    current_user.gender = form.gender.data or None
+    current_user.education_qualification = form.education_qualification.data
+    current_user.address = form.address.data
 
-        # Handle resume upload
-        if 'resume' in request.files:
-            file = request.files['resume']
-            if file and file.filename.lower().endswith('.pdf'):
-                filename = secure_filename(f"resume_{current_user.id}.pdf")
-                file.save(os.path.join(current_app.root_path, "static/uploads/resumes", filename))
-                current_user.resume = filename
+    # Email/Username change logic
+    if form.username.data != current_user.username:
+        current_user.username = form.username.data
 
+    if form.email.data != current_user.email:
+        current_user.email = form.email.data
+        current_user.is_verified = False
+        send_verification_email(current_user)
+        flash("Email changed. Please verify your new email.", "warning")
+
+    # 1. FILE CLEANUP & UPDATE LOGIC
+    # We iterate through photo and resume to keep the code DRY (Don't Repeat Yourself)
+    file_configs = [
+        ('photo', 'photos', 'image', 'jpg'),
+        ('resume', 'resumes', 'pdf', 'pdf')
+    ]
+
+    for field_name, folder_name, mime_group, extension in file_configs:
+        file_data = getattr(form, field_name).data
+        
+        if file_data:
+            # Validate magic bytes
+            if not is_valid_file(file_data, mime_group):
+                flash(f"Invalid {field_name} file format.", "danger")
+                continue
+
+            # DELETE OLD FILE FROM DISK
+            old_filename = getattr(current_user, field_name)
+            if old_filename:
+                old_path = os.path.join(current_app.config["UPLOAD_FOLDER"], folder_name, old_filename)
+                try:
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
+                except Exception as e:
+                    # Log error but don't stop the process
+                    print(f"Error deleting old {field_name}: {e}")
+
+            # SAVE NEW FILE
+            new_filename = generate_secure_filename(field_name, extension)
+            new_path = os.path.join(current_app.config["UPLOAD_FOLDER"], folder_name, new_filename)
+            file_data.save(new_path)
+            
+            # Update database record
+            setattr(current_user, field_name, new_filename)
+
+    try:
         db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('auth.dashboard'))
+        flash("Profile updated successfully.", "success")
+    except IntegrityError:
+        db.session.rollback()
+        flash("Username or email already exists.", "danger")
 
-    return redirect(url_for('auth.dashboard'))  # GET just shows the tab
+    return redirect(url_for("auth.dashboard"))
+
+
+# --------------------
+# Forgot Password
+# --------------------
 
 @auth_bp.route("/forgot_password", methods=["GET", "POST"])
+@limiter.limit("3 per minute")
 def forgot_password():
+    print("in forgot_password")
     form = ForgotPasswordForm()
+
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             send_reset_email(user)
-        flash("If this email exists, a reset link has been sent.", "info")
+
+        flash("If the email exists, a reset link has been sent.", "info")
         return redirect(url_for("auth.login"))
+
     return render_template("forgot_password.html", form=form)
 
 
+# --------------------
+# Reset Password
+# --------------------
+
 @auth_bp.route("/reset_password/<token>", methods=["GET", "POST"])
+@limiter.limit("10 per hour")
 def reset_password(token):
-    print("Reset password route accessed")
     user = User.verify_reset_token(token)
+
     if not user:
-        print("No user available")
-        flash("Invalid or expired token.", "warning")
+        flash("Invalid or expired reset link.", "danger")
         return redirect(url_for("auth.forgot_password"))
 
     form = ResetPasswordForm()
+
     if form.validate_on_submit():
-        print("token form validated")
-        hashed_pw = bcrypt.generate_password_hash(form.password.data)
-        user.password = hashed_pw
+        user.password = bcrypt.generate_password_hash(
+            form.password.data
+        ).decode("utf-8")
         db.session.commit()
-        flash("Your password has been updated!", "success")
+
+        flash("Your password has been updated.", "success")
         return redirect(url_for("auth.login"))
 
     return render_template("reset_password.html", form=form)
 
-@auth_bp.route('/verify/<token>')
+
+# --------------------
+# Verify Email
+# --------------------
+
+@auth_bp.route("/verify/<token>")
+@limiter.limit("10 per hour")
 def verify_email(token):
     try:
-        email = get_serializer().loads(token, salt="email-verify", max_age=3600)
+        email = get_serializer().loads(
+            token, salt="email-verify", max_age=3600
+        )
     except Exception:
-        flash("The verification link is invalid or expired.", "danger")
-        return redirect(url_for('auth.login'))
+        flash("Invalid or expired verification link.", "danger")
+        return redirect(url_for("auth.login"))
 
     user = User.query.filter_by(email=email).first()
 
     if not user:
         flash("User not found.", "danger")
-        return redirect(url_for('auth.login'))
+        return redirect(url_for("auth.login"))
 
     if user.is_verified:
-        flash("Your account is already verified. Please log in.", "info")
-        return redirect(url_for('auth.login'))
+        flash("Account already verified.", "info")
+        return redirect(url_for("auth.login"))
 
     user.is_verified = True
     db.session.commit()
 
-    flash("Your email has been verified! You can now log in.", "success")
-    return redirect(url_for('auth.login'))
+    flash("Email verified successfully.", "success")
+    return redirect(url_for("auth.login"))
 
-@auth_bp.route('/resend-verification', methods=['GET', 'POST'])
+
+# --------------------
+# Resend Verification
+# --------------------
+
+@auth_bp.route("/resend-verification", methods=["POST"])
+@limiter.limit("3 per minute")
 def resend_verification():
-    if request.method == 'POST':
-        email = request.form.get('email')
+    email = request.form.get("email")
 
-        user = User.query.filter_by(email=email).first()
+    if not email:
+        flash("Invalid request.", "danger")
+        return redirect(url_for("auth.login"))
 
-        if not user:
-            flash("No account found with that email.", "danger")
-            return redirect(url_for('auth.resend_verification'))
+    user = User.query.filter_by(email=email).first()
 
-        if user.is_verified:
-            flash("Your account is already verified. Please log in.", "info")
-            return redirect(url_for('auth.login'))
-
-        # Send email again
+    if user and not user.is_verified:
         send_verification_email(user)
 
-        flash("A new verification email has been sent.", "success")
-        return redirect(url_for('auth.login'))
-
-    return render_template("resend_verification.html")
+    flash("If applicable, a verification email has been sent.", "info")
+    return redirect(url_for("auth.login"))

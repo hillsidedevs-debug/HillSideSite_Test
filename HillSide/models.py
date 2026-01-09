@@ -66,18 +66,39 @@ class User(db.Model, UserMixin):
 
     def is_staff(self):
         return self.role in (RoleEnum.STAFF, RoleEnum.ADMIN)
+    # def get_reset_token(self):
+    #     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    #     return s.dumps(self.email, salt='password-reset-salt')
+    
+    # @staticmethod
+    # def verify_reset_token(token, expiration=3600):
+    #     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    #     try:
+    #         email = s.loads(token, salt='password-reset-salt', max_age=expiration)
+    #     except:
+    #         return None
+    #     return User.query.filter_by(email=email).first()
+
     def get_reset_token(self):
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-        return s.dumps(self.email, salt='password-reset-salt')
-    
+        # Including a slice of the password hash in the salt 
+        # ensures the token becomes invalid if the password changes.
+        return s.dumps(self.email, salt=f'reset-salt-{self.password[:10]}')
+
     @staticmethod
     def verify_reset_token(token, expiration=3600):
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
         try:
-            email = s.loads(token, salt='password-reset-salt', max_age=expiration)
-        except:
+            # 1. Unsign without validation to get the email
+            email = s.loads(token, salt=None) 
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                return None
+            # 2. Re-verify with the actual password-based salt
+            s.loads(token, salt=f'reset-salt-{user.password[:10]}', max_age=expiration)
+            return user
+        except Exception:
             return None
-        return User.query.filter_by(email=email).first()
 
 
 class Course(db.Model):

@@ -4,35 +4,39 @@ from wtforms import (
     SelectField
 )
 from flask_wtf.file import FileField, FileAllowed
-from wtforms.validators import DataRequired, Email, Optional, EqualTo
+from wtforms.validators import DataRequired, Email, Optional, EqualTo, Length
 from HillSide.models import GenderEnum  # import your enum
 
 
 class RegisterForm(FlaskForm):
+    # Added Length constraints to match DB schema
+    first_name = StringField("First Name", validators=[DataRequired(), Length(max=100)])
+    last_name = StringField("Last Name", validators=[DataRequired(), Length(max=100)])
 
-    first_name = StringField("First Name", validators=[DataRequired()])
-    last_name = StringField("Last Name", validators=[DataRequired()])
-
-    username = StringField("Username", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired(), Length(min=4, max=150)])
+    email = StringField("Email", validators=[DataRequired(), Email(), Length(max=150)])
+    
+    # Enforce a minimum password length for better security
+    password = PasswordField("Password", validators=[DataRequired(), Length(min=8, max=128)])
     password_confirm = PasswordField(
         'Confirm Password',
         validators=[DataRequired(), EqualTo('password', message='Passwords must match')]
     )
-    phone_number = StringField("Phone Number", validators=[Optional()])
+    
+    phone_number = StringField("Phone Number", validators=[Optional(), Length(max=20)])
 
     photo = FileField(
         "Profile Photo",
         validators=[Optional(), FileAllowed(["jpg", "jpeg", "png"], "Images only!")]
     )
 
+    # Standardized to PDF to match your backend logic
     resume = FileField(
         "Resume",
-        validators=[Optional(), FileAllowed(["pdf", "doc", "docx"], "Documents only!")]
+        validators=[Optional(), FileAllowed(["pdf"], "PDFs only!")]
     )
 
-    address = TextAreaField("Address", validators=[Optional()])
+    address = TextAreaField("Address", validators=[Optional(), Length(max=1000)])
 
     gender = SelectField(
         "Gender",
@@ -45,6 +49,6 @@ class RegisterForm(FlaskForm):
         validators=[Optional()]
     )
 
-    education_qualification = StringField("Education Qualification", validators=[Optional()])
+    education_qualification = StringField("Education Qualification", validators=[Optional(), Length(max=200)])
 
     submit = SubmitField("Register")

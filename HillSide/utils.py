@@ -4,6 +4,7 @@ from flask_login import current_user
 from HillSide.extensions import mail
 from flask_mail import Message
 from .config import Config
+import uuid
 
 from itsdangerous import URLSafeTimedSerializer
 
@@ -57,3 +58,23 @@ def send_verification_email(user):
     )
 
     mail.send(msg)
+
+def generate_secure_filename(prefix, extension):
+    return f"{prefix}_{uuid.uuid4().hex}.{extension}"
+
+import magic # pip install python-magic
+
+def is_valid_file(file_storage, expected_mime_group):
+    header = file_storage.read(2048)
+    file_storage.seek(0)
+    
+    mime = magic.from_buffer(header, mime=True)
+    
+    if expected_mime_group == 'image':
+        return mime in ['image/jpeg', 'image/png']
+    if expected_mime_group == 'pdf':
+        return mime == 'application/pdf'
+    # Inside is_valid_file(file_storage, expected_mime_group)
+    if expected_mime_group == 'video':
+        return mime in ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']
+    return False

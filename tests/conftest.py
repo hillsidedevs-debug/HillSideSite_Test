@@ -38,29 +38,6 @@ def app(tmp_path): # 👈 ADD tmp_path as an argument here
         yield app
         db.drop_all()
         db.session.remove()
-
-# @pytest.fixture(scope="function")  # ← Important: fresh DB for each test
-# def app():
-
-#     app_config = {
-#         "TESTING": True,
-#         "SECRET_KEY": "test-secret",
-#         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-#         "WTF_CSRF_ENABLED": False,
-#         "UPLOAD_FOLDER_PHOTOS": "/tmp/photos",
-#         "UPLOAD_FOLDER_RESUMES": "/tmp/resumes",
-#     }
-        
-#     app = create_app(app_config)
-
-
-#     with app.app_context():
-#         db.create_all()
-#         yield app
-#         db.drop_all()
-#         db.session.remove()
-
-
 @pytest.fixture
 def client(app):
     return app.test_client()

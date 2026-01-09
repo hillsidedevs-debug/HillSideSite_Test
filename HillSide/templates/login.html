@@ -29,6 +29,7 @@
         Didn’t receive the verification email?
         <form action="{{ url_for('auth.resend_verification') }}" method="POST" style="display:inline;">
             <input type="hidden" name="email" value="{{ email }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-link p-0 m-0 align-baseline">Resend email</button>
         </form>
     </div>
