@@ -39,7 +39,13 @@
               </a>
             </td>
 
-            <td>{{ course.start_date.strftime('%Y-%m-%d') }}</td>
+            <td>
+              {% if course.start_date %}
+                {{ course.start_date.strftime('%Y-%m-%d') }}
+              {% else %}
+                Not set
+              {% endif %}
+            </td>
             <td>{{ course.duration_weeks }}</td>
             <td>{{ course.total_seats }}</td>
             <td>{{ course.seats_left }}</td>
