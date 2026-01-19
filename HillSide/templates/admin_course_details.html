@@ -44,7 +44,7 @@
             </div>
             <div class="col-sm-4 mb-2">
               <i class="bi bi-people text-warning"></i>
-              <strong class="ms-2">Seats Left:</strong> {{ course.total_seats - course.enrollments|length }} / {{ course.total_seats }}
+              <strong class="ms-2">Seats Left:</strong> {{ course.total_seats - course.enrollments|length if course.total_seats is not none else 'Unlimited' }} / {{ course.total_seats or '∞' }}
             </div>
           </div>
         </div>
