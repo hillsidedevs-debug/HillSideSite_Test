@@ -14,96 +14,90 @@
           </p>
 
           <form
-            action="{{ url_for('courses.add_course') }}"
             method="POST"
             enctype="multipart/form-data"
             class="bg-white"
           >
+            {# This replaces the manual hidden input and handles the CSRF token #}
+            {{ form.hidden_tag() }}
 
             {# ===== BASIC INFO ===== #}
             <div class="mb-3">
-              <label class="form-label fw-semibold">Course Title</label>
-              <input type="text" class="form-control" name="title" required>
+              {{ form.title.label(class="form-label fw-semibold") }}
+              {{ form.title(class="form-control") }}
+              {% for error in form.title.errors %}
+                <span class="text-danger small">{{ error }}</span>
+              {% endfor %}
             </div>
 
             <div class="mb-4">
-              <label class="form-label fw-semibold">Description</label>
-              <textarea class="form-control" name="description" rows="4"></textarea>
+              {{ form.description.label(class="form-label fw-semibold") }}
+              {{ form.description(class="form-control", rows="4") }}
             </div>
 
             {# ===== META ===== #}
             <div class="row mb-4">
               <div class="col-md-4">
-                <label class="form-label fw-semibold">Start Date</label>
-                <input type="date" class="form-control" name="start_date">
+                {{ form.start_date.label(class="form-label fw-semibold") }}
+                {{ form.start_date(class="form-control", type="date") }}
               </div>
               <div class="col-md-4">
-                <label class="form-label fw-semibold">Duration (weeks)</label>
-                <input type="number" class="form-control" name="duration_weeks" min="1">
+                {{ form.duration_weeks.label(class="form-label fw-semibold") }}
+                {{ form.duration_weeks(class="form-control", min="1") }}
               </div>
               <div class="col-md-4">
-                <label class="form-label fw-semibold">Total Seats</label>
-                <input type="number" class="form-control" name="total_seats" min="1">
+                {{ form.total_seats.label(class="form-label fw-semibold") }}
+                {{ form.total_seats(class="form-control", min="1") }}
               </div>
             </div>
 
             {# ===== IMAGE ===== #}
             <div class="mb-4">
-              <label class="form-label fw-semibold">Course Image</label>
-              <input type="file" class="form-control" name="image">
+              {{ form.image.label(class="form-label fw-semibold") }}
+              {{ form.image(class="form-control") }}
             </div>
 
             <hr class="my-4">
 
             {# ===== DYNAMIC CONTENT ===== #}
             <div class="mb-4">
-              <label class="form-label fw-semibold">Who this course is for</label>
-              <textarea class="form-control" name="who_is_this_for" rows="3"
-                placeholder="One item per line"></textarea>
+              {{ form.who_is_this_for.label(class="form-label fw-semibold") }}
+              {{ form.who_is_this_for(class="form-control", rows="3", placeholder="One item per line") }}
             </div>
 
             <div class="mb-4">
-              <label class="form-label fw-semibold">Learning outcomes</label>
-              <textarea class="form-control" name="learning_outcomes" rows="3"
-                placeholder="One item per line"></textarea>
+              {{ form.learning_outcomes.label(class="form-label fw-semibold") }}
+              {{ form.learning_outcomes(class="form-control", rows="3", placeholder="One item per line") }}
             </div>
 
             <div class="mb-4">
-              <label class="form-label fw-semibold">Course structure</label>
-              <textarea class="form-control" name="course_structure" rows="3"
-                placeholder="One item per line"></textarea>
+              {{ form.course_structure.label(class="form-label fw-semibold") }}
+              {{ form.course_structure(class="form-control", rows="3", placeholder="One item per line") }}
             </div>
 
             <hr class="my-4">
 
             {# ===== INSTRUCTOR ===== #}
             <div class="mb-3">
-              <label class="form-label fw-semibold">Instructor Name</label>
-              <input type="text" class="form-control" name="instructor_name">
+              {{ form.instructor_name.label(class="form-label fw-semibold") }}
+              {{ form.instructor_name(class="form-control") }}
             </div>
 
             <div class="mb-4">
-              <label class="form-label fw-semibold">Instructor Bio</label>
-              <textarea class="form-control" name="instructor_bio" rows="3"></textarea>
+              {{ form.instructor_bio.label(class="form-label fw-semibold") }}
+              {{ form.instructor_bio(class="form-control", rows="3") }}
             </div>
 
             <hr class="my-4">
 
             {# ===== FAQ ===== #}
             <div class="mb-4">
-              <label class="form-label fw-semibold">FAQs</label>
-              <textarea
-                class="form-control"
-                name="faqs"
-                rows="4"
-                placeholder="Question?|Answer (one per line)"
-              ></textarea>
+              {{ form.faqs.label(class="form-label fw-semibold") }}
+              {{ form.faqs(class="form-control", rows="4", placeholder="Question?|Answer (one per line)") }}
             </div>
 
             <div class="text-center">
-              <button type="submit" class="btn btn-primary rounded-pill px-5 mt-3">
-                Add Course
-              </button>
+              {{ form.submit(class="btn btn-primary rounded-pill px-5 mt-3") }}
             </div>
 
           </form>

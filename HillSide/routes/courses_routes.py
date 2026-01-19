@@ -8,6 +8,7 @@ import os
 from HillSide.extensions import db
 from HillSide.models import Course, Enrollment
 from HillSide.utils import admin_required, is_valid_file
+from HillSide.forms.add_course_form import CourseForm
 
 
 # from utils import admin_required
@@ -38,72 +39,35 @@ import os
 @login_required
 @admin_required
 def add_course():
-    if request.method == 'POST':
-        title = request.form['title']
-        description = request.form.get('description')
-
-        start_date_str = request.form.get('start_date')
-        duration_weeks = request.form.get('duration_weeks')
-        total_seats = request.form.get('total_seats')
-
-        who_is_this_for = request.form.get('who_is_this_for')
-        learning_outcomes = request.form.get('learning_outcomes')
-        course_structure = request.form.get('course_structure')
-
-        instructor_name = request.form.get('instructor_name')
-        instructor_bio = request.form.get('instructor_bio')
-
-        faqs = request.form.get('faqs')
-
-        # ---------------------------
-        # PARSE DATE
-        # ---------------------------
-        start_date = (
-            datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            if start_date_str else None
-        )
-
-        # ---------------------------
-        # SAFE IMAGE HANDLING
-        # ---------------------------
-        image_file = request.files.get('image')
+    form = CourseForm()
+    
+    if form.validate_on_submit():
+        # Handle Image Saving
         image_filename = None
-
-        if image_file and image_file.filename:
-            if not is_valid_file(image_file, 'image'):
-                flash("❌ Invalid image format.", "danger")
-                return redirect(url_for("courses.add_course"))
-
-            upload_folder = os.path.join(
-                current_app.root_path, "static/uploads/courses"
-            )
+        if form.image.data:
+            image_file = form.image.data
+            upload_folder = os.path.join(current_app.root_path, "static/uploads/courses")
             os.makedirs(upload_folder, exist_ok=True)
-
+            
             original = secure_filename(image_file.filename)
             unique_name = f"{uuid.uuid4().hex}_{original}"
-
             image_file.save(os.path.join(upload_folder, unique_name))
             image_filename = unique_name
 
-        # ---------------------------
-        # CREATE COURSE
-        # ---------------------------
+        # Create Course using form.data
         course = Course(
-            title=title,
-            description=description,
-            start_date=start_date,
-            duration_weeks=int(duration_weeks) if duration_weeks else None,
-            total_seats=int(total_seats) if total_seats else None,
+            title=form.title.data,
+            description=form.description.data,
+            start_date=form.start_date.data,
+            duration_weeks=form.duration_weeks.data,
+            total_seats=form.total_seats.data,
             image=image_filename,
-
-            who_is_this_for=who_is_this_for,
-            learning_outcomes=learning_outcomes,
-            course_structure=course_structure,
-
-            instructor_name=instructor_name,
-            instructor_bio=instructor_bio,
-
-            faqs=faqs
+            who_is_this_for=form.who_is_this_for.data,
+            learning_outcomes=form.learning_outcomes.data,
+            course_structure=form.course_structure.data,
+            instructor_name=form.instructor_name.data,
+            instructor_bio=form.instructor_bio.data,
+            faqs=form.faqs.data
         )
 
         db.session.add(course)
@@ -112,7 +76,7 @@ def add_course():
         flash('✅ Course added successfully!', 'success')
         return redirect(url_for('courses.list_courses'))
 
-    return render_template('add_course.html')
+    return render_template('add_course.html', form=form)
 
 
 
