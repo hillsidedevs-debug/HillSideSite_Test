@@ -32,10 +32,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from flask import Flask
+from flask import Flask, app
 from flask_talisman import Talisman
 from HillSide.extensions import db, mail, bcrypt, login_manager, migrate, csrf, limiter
-from HillSide.config import DevelopmentConfig, ProductionConfig
+from HillSide.config import DevelopmentConfig, ProductionConfig, TestingConfig
 from HillSide.routes import register_blueprints
 from HillSide.models import User
 import os
@@ -96,6 +96,10 @@ def create_app(config_object=None):
         # Disable HTTPS requirement for local dev
         #Talisman(app, force_https=False)
         print("Running in Development mode")
+    elif env == "testing":
+        app.config.from_object(TestingConfig)
+        print("RRunning in Testing mode")
+
     else:
         raise RuntimeError(f"Unknown FLASK_ENV: {env}")
 

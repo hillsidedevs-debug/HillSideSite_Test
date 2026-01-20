@@ -72,6 +72,22 @@ class DevelopmentConfig(Config):
     MAIL_USERNAME = None
     MAIL_PASSWORD = None
 
+class TestingConfig(Config):
+    DEBUG = True
+    MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB
+
+    # Use local mail server (MailHog, MailPit, Python smtpd, etc.)
+    # Use real Gmail SMTP
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    if not MAIL_USERNAME:
+        raise RuntimeError("MAIL_USERNAME is not set")
+    if not MAIL_PASSWORD:
+        raise RuntimeError("MAIL_PASSWORD is not set")
+
 
 class ProductionConfig(Config):
     DEBUG = False
