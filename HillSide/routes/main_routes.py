@@ -90,7 +90,7 @@ def services():
 #     return render_template('contact.html', form=form)
 
 @main_bp.route('/contact', methods=['GET', 'POST'])
-@limiter.limit("5 per hour") # Prevent someone from spamming your inbox
+#@limiter.limit("5 per hour") # Prevent someone from spamming your inbox
 def contact():
     form = ContactForm()
     if form.validate_on_submit():

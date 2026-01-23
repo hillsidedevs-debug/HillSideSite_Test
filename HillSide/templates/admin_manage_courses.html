@@ -72,6 +72,7 @@
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary rounded-4" data-bs-dismiss="modal">Cancel</button>
                       <form action="{{ url_for('admin.delete_course', course_id=course.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-danger rounded-4 px-3">Delete</button>
                       </form>
                     </div>

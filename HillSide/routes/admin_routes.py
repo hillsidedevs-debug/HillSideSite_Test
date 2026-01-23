@@ -236,6 +236,29 @@ def delete_course(course_id):
     flash('🗑️ Course deleted successfully!', 'success')
     return redirect(url_for('admin.manage_courses'))
 
+@admin_bp.route('/user/delete/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Optional: Prevent deleting yourself or the last admin
+    if user.id == current_user.id:
+        flash('You cannot delete your own account!', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    # Optional: Prevent deleting admins if you want to keep at least one
+    # if user.is_admin() and User.query.filter_by(role=RoleEnum.ADMIN).count() <= 1:
+    #     flash('Cannot delete the last admin account!', 'danger')
+    #     return redirect(url_for('admin.manage_users'))
+    
+    # Cascade should handle enrollments if you have cascade='all, delete-orphan'
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash('🗑️ User deleted successfully!', 'success')
+    return redirect(url_for('admin.manage_users'))
+
 @admin_bp.route('/add-staff', methods=['GET', 'POST'])
 @login_required
 @admin_required
