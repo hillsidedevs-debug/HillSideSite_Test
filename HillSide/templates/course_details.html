@@ -46,6 +46,7 @@
             enctype="multipart/form-data"
             class="mb-5"
           >
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label class="form-label fw-semibold">
               Upload / Replace Course Intro Video
             </label>
