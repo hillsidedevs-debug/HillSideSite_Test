@@ -1,160 +1,169 @@
 {% extends "basic.html" %}
-
 {% block content %}
-<div class="container my-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-9">
 
-      <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body p-4 p-lg-5">
+<div class="container mt-5">
+    <h2 class="mb-4">Edit Course</h2>
 
-          <h3 class="fw-bold mb-4">Edit Course</h3>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
 
-          <form method="POST">
-
-            {# ===== BASIC INFO ===== #}
-            <div class="mb-3">
-              <label class="form-label fw-semibold">Course Title</label>
-              <input
-                type="text"
-                class="form-control"
-                name="title"
-                value="{{ course.title }}"
-                required
-              >
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label fw-semibold">Description</label>
-              <textarea
-                class="form-control"
-                name="description"
-                rows="4"
-              >{{ course.description }}</textarea>
-            </div>
-
-            {# ===== META ===== #}
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <label class="form-label fw-semibold">Start Date</label>
-                <input
-                  type="date"
-                  class="form-control"
-                  name="start_date"
-                  value="{{ course.start_date.strftime('%Y-%m-%d') if course.start_date }}"
-                >
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold">Duration (weeks)</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  name="duration_weeks"
-                  min="1"
-                  value="{{ course.duration_weeks }}"
-                >
-              </div>
-              <div class="col-md-4">
-                <label class="form-label fw-semibold">Total Seats</label>
-                <input
-                  type="number"
-                  class="form-control"
-                  name="total_seats"
-                  min="1"
-                  value="{{ course.total_seats }}"
-                >
-              </div>
-            </div>
-
-            <hr class="my-4">
-
-            {# ===== DYNAMIC CONTENT ===== #}
-            <div class="mb-4">
-              <label class="form-label fw-semibold">Who this course is for</label>
-              <textarea
-                class="form-control"
-                name="who_is_this_for"
-                rows="3"
-              >{{ course.who_is_this_for }}</textarea>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label fw-semibold">Learning outcomes</label>
-              <textarea
-                class="form-control"
-                name="learning_outcomes"
-                rows="3"
-              >{{ course.learning_outcomes }}</textarea>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label fw-semibold">Course structure</label>
-              <textarea
-                class="form-control"
-                name="course_structure"
-                rows="3"
-              >{{ course.course_structure }}</textarea>
-            </div>
-
-            <hr class="my-4">
-
-            {# ===== INSTRUCTOR ===== #}
-            <div class="mb-3">
-              <label class="form-label fw-semibold">Instructor Name</label>
-              <input
-                type="text"
-                class="form-control"
-                name="instructor_name"
-                value="{{ course.instructor_name }}"
-              >
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label fw-semibold">Instructor Bio</label>
-              <textarea
-                class="form-control"
-                name="instructor_bio"
-                rows="3"
-              >{{ course.instructor_bio }}</textarea>
-            </div>
-
-            <hr class="my-4">
-
-            {# ===== FAQs ===== #}
-            <div class="mb-4">
-              <label class="form-label fw-semibold">FAQs</label>
-              <textarea
-                class="form-control"
-                name="faqs"
-                rows="4"
-              >{{ course.faqs }}</textarea>
-              <div class="form-text">
-                One per line. Format: Question?|Answer
-              </div>
-            </div>
-
-            {# ===== ACTIONS ===== #}
-            <div class="d-flex justify-content-end gap-2">
-              <a
-                href="{{ url_for('admin.manage_courses') }}"
-                class="btn btn-outline-secondary rounded-pill px-4"
-              >
-                Cancel
-              </a>
-              <button
-                type="submit"
-                class="btn btn-success rounded-pill px-4"
-              >
-                Save Changes
-              </button>
-            </div>
-
-          </form>
-
+        <!-- Title -->
+        <div class="mb-3">
+            {{ form.title.label(class="form-label") }}
+            {{ form.title(class="form-control") }}
+            {% if form.title.errors %}
+                <div class="text-danger small">
+                    {% for error in form.title.errors %}
+                        {{ error }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
-      </div>
 
-    </div>
-  </div>
+        <!-- Description -->
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control", rows=4) }}
+            {% if form.description.errors %}
+                <div class="text-danger small">
+                    {% for error in form.description.errors %}
+                        {{ error }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Start Date, Duration, Total Seats (in a row) -->
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                {{ form.start_date.label(class="form-label") }}
+                {{ form.start_date(class="form-control") }}
+                {% if form.start_date.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.start_date.errors %}{{ error }}<br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.duration_weeks.label(class="form-label") }}
+                {{ form.duration_weeks(class="form-control") }}
+                {% if form.duration_weeks.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.duration_weeks.errors %}{{ error }}<br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4 mb-3">
+                {{ form.total_seats.label(class="form-label") }}
+                {{ form.total_seats(class="form-control") }}
+                {% if form.total_seats.errors %}
+                    <div class="text-danger small">
+                        {% for error in form.total_seats.errors %}{{ error }}<br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Who is this for -->
+        <div class="mb-3">
+            {{ form.who_is_this_for.label(class="form-label") }}
+            {{ form.who_is_this_for(class="form-control", rows=3) }}
+            {% if form.who_is_this_for.errors %}
+                <div class="text-danger small">
+                    {% for error in form.who_is_this_for.errors %}{{ error }}<br>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Learning outcomes -->
+        <div class="mb-3">
+            {{ form.learning_outcomes.label(class="form-label") }}
+            {{ form.learning_outcomes(class="form-control", rows=3) }}
+            {% if form.learning_outcomes.errors %}
+                <div class="text-danger small">
+                    {% for error in form.learning_outcomes.errors %}{{ error }}<br>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Course structure -->
+        <div class="mb-3">
+            {{ form.course_structure.label(class="form-label") }}
+            {{ form.course_structure(class="form-control", rows=3) }}
+            {% if form.course_structure.errors %}
+                <div class="text-danger small">
+                    {% for error in form.course_structure.errors %}{{ error }}<br>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Instructor Name -->
+        <div class="mb-3">
+            {{ form.instructor_name.label(class="form-label") }}
+            {{ form.instructor_name(class="form-control") }}
+            {% if form.instructor_name.errors %}
+                <div class="text-danger small">
+                    {% for error in form.instructor_name.errors %}{{ error }}<br>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Instructor Bio -->
+        <div class="mb-3">
+            {{ form.instructor_bio.label(class="form-label") }}
+            {{ form.instructor_bio(class="form-control", rows=3) }}
+            {% if form.instructor_bio.errors %}
+                <div class="text-danger small">
+                    {% for error in form.instructor_bio.errors %}{{ error }}<br>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- FAQs -->
+        <div class="mb-3">
+            {{ form.faqs.label(class="form-label") }}
+            {{ form.faqs(class="form-control", rows=4) }}
+            <div class="form-text">
+                One per line. Format: Question?|Answer
+            </div>
+            {% if form.faqs.errors %}
+                <div class="text-danger small">
+                    {% for error in form.faqs.errors %}{{ error }}<br>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Course Photo -->
+        <div class="mb-3">
+            {{ form.image.label(class="form-label") }}
+            {{ form.image(class="form-control") }}
+            {% if form.image.errors %}
+                <div class="text-danger small">
+                    {% for error in form.image.errors %}
+                        {{ error }}<br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% if course.image %}
+                <div class="mt-2">
+                    <small>Current photo:</small><br>
+                    <img src="{{ url_for('static', filename=course.image) }}" 
+                         alt="Current course photo" 
+                         style="max-height: 180px; object-fit: cover;" 
+                         class="rounded border mt-1">
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Submit / Cancel -->
+        <div class="mt-4 d-flex gap-3">
+            <a href="{{ url_for('admin.manage_courses') }}" class="btn btn-outline-secondary">
+                Cancel
+            </a>
+            {{ form.submit(class="btn btn-success") }}
+        </div>
+
+    </form>
 </div>
+
 {% endblock %}
