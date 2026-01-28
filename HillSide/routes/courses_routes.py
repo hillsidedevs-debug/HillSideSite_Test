@@ -35,6 +35,7 @@ from werkzeug.utils import secure_filename
 import uuid
 import os
 
+
 @courses_bp.route('/add-course', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -42,26 +43,41 @@ def add_course():
     form = CourseForm()
     
     if form.validate_on_submit():
-        # Handle Image Saving
-        image_filename = None
+        image_relative_path = None
+        
         if form.image.data:
-            image_file = form.image.data
-            upload_folder = os.path.join(current_app.root_path, "static/uploads/courses")
-            os.makedirs(upload_folder, exist_ok=True)
+            # ── 1. Prepare filename (same style as your correct example) ──
+            original_filename = secure_filename(form.image.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{original_filename}"
             
-            original = secure_filename(image_file.filename)
-            unique_name = f"{uuid.uuid4().hex}_{original}"
-            image_file.save(os.path.join(upload_folder, unique_name))
-            image_filename = unique_name
-
-        # Create Course using form.data
+            # Relative path stored in DB (this is the key part)
+            relative_path = os.path.join('courses', unique_filename)
+            
+            # Full save path on disk
+            # Using UPLOAD_FOLDER if set, otherwise fallback to static/uploads/courses
+            upload_base = current_app.config.get(
+                'UPLOAD_FOLDER',
+                os.path.join(current_app.root_path, 'static', 'uploads')
+            )
+            full_save_path = os.path.join(upload_base, relative_path)
+            
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(full_save_path), exist_ok=True)
+            
+            # Save the file
+            form.image.data.save(full_save_path)
+            
+            # This goes into the database
+            image_relative_path = relative_path
+        
+        # ── Create course ────────────────────────────────────────
         course = Course(
             title=form.title.data,
             description=form.description.data,
             start_date=form.start_date.data,
             duration_weeks=form.duration_weeks.data,
             total_seats=form.total_seats.data,
-            image=image_filename,
+            image=image_relative_path,                    # ← now 'courses/abc1234d-name.jpg'
             who_is_this_for=form.who_is_this_for.data,
             learning_outcomes=form.learning_outcomes.data,
             course_structure=form.course_structure.data,
@@ -69,13 +85,13 @@ def add_course():
             instructor_bio=form.instructor_bio.data,
             faqs=form.faqs.data
         )
-
+        
         db.session.add(course)
         db.session.commit()
-
+        
         flash('✅ Course added successfully!', 'success')
         return redirect(url_for('courses.list_courses'))
-
+    
     return render_template('add_course.html', form=form)
 
 

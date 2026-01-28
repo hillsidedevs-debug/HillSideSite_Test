@@ -5,6 +5,7 @@ from HillSide.extensions import mail
 from flask_mail import Message
 from .config import Config
 import uuid
+import os
 
 from itsdangerous import URLSafeTimedSerializer
 
@@ -78,3 +79,4 @@ def is_valid_file(file_storage, expected_mime_group):
     if expected_mime_group == 'video':
         return mime in ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-matroska']
     return False
+

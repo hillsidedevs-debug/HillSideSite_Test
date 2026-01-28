@@ -77,7 +77,7 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     DEBUG = True
-    MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100MB
+    MAX_CONTENT_LENGTH = 1 * 1024 * 1024  # 100MB
 
     # Use local mail server (MailHog, MailPit, Python smtpd, etc.)
     # Use real Gmail SMTP
