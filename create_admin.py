@@ -11,13 +11,13 @@ def create_admin():
             print("Admin already exists!")
             return
 
-        hashed_password = bcrypt.generate_password_hash('admin').decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash('vadminkumar@0609').decode('utf-8')
 
         admin = User(
             first_name="Admin",
             last_name="User",
             username="admin",
-            email="admin@admin.com",
+            email="vkumaradmin@hillsidesoftware",
             password=hashed_password,
             role=RoleEnum.ADMIN,
             is_verified=True,

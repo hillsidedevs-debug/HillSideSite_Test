@@ -21,17 +21,53 @@
 <div class="container text-center my-5">
   <div class="row">
     <div class="col-md-4">
-      <h4 class="fw-semibold mb-2">Software Development</h4>
-      <p class="text-muted">Custom web and mobile solutions tailored to your business goals.</p>
-    </div>
-    <div class="col-md-4">
-      <h4 class="fw-semibold mb-2">Business Consultation</h4>
-      <p class="text-muted">Helping companies plan, scale, and innovate through technology.</p>
-    </div>
-    <div class="col-md-4">
-      <h4 class="fw-semibold mb-2">Training & Mentorship</h4>
-      <p class="text-muted">Upskilling students and professionals with real-world development experience.</p>
-    </div>
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="bi bi-code-slash fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fw-bold">Software Development</h5>
+            <p class="card-text text-muted">
+              We build scalable web and mobile applications tailored to your business needs using modern technologies and clean architecture.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <i class="bi bi-graph-up-arrow fs-1 text-success"></i>
+            </div>
+            <h5 class="card-title fw-bold">Business Consultation</h5>
+            <p class="card-text text-muted">
+              We help companies innovate, optimize operations, and make technology decisions that align with long-term goals.
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm rounded-4">
+          <div class="card-body text-center d-flex flex-column justify-content-between">
+            <div>
+              <div class="mb-3">
+                <i class="bi bi-mortarboard fs-1 text-warning"></i>
+              </div>
+              <h5 class="card-title fw-bold">Training & Mentorship</h5>
+              <p class="card-text text-muted">
+                We offer workshops, bootcamps, and one-on-one mentorship programs to help students and professionals grow in software development.
+              </p>
+            </div>
+            <div class="mt-3">
+              <a href="{{ url_for('courses.list_courses') }}" class="btn btn-outline-warning rounded-pill px-4">
+                <i class="bi bi-book me-2"></i> View Courses
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 </div>
 
