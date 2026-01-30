@@ -5,6 +5,8 @@ from HillSide.forms.contact_form import ContactForm
 from HillSide.forms.captcha_form import CaptchaForm
 from datetime import datetime, timedelta
 import time
+import os
+from flask import send_from_directory, current_app
 
 main_bp = Blueprint('main', __name__)
 
@@ -115,3 +117,9 @@ def contact():
         return redirect(url_for('main.contact'))
 
     return render_template('contact.html', form=form)
+
+@main_bp.route('/download-resume/<filename>')
+def download_resume(filename):
+    # This points to the absolute path of your root uploads folder
+    resume_dir = os.path.join(current_app.root_path, '../uploads/resumes')
+    return send_from_directory(resume_dir, filename, as_attachment=True)

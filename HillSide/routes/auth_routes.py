@@ -24,7 +24,7 @@ from HillSide.utils import (
     generate_secure_filename,
     is_valid_file
 )
-
+from HillSide.models import GenderEnum
 from flask import session 
 
 auth_bp = Blueprint("auth", __name__)
@@ -162,7 +162,7 @@ def dashboard():
     enrollments = Enrollment.query.filter_by(
         user_id=current_user.id
     ).all()
-    return render_template("dashboard.html", enrollments=enrollments)
+    return render_template("dashboard.html", enrollments=enrollments, GenderEnum=GenderEnum)
 
 
 # --------------------

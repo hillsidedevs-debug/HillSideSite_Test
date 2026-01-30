@@ -5,7 +5,7 @@
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-3">
-      <img src="{{ url_for('static', filename='uploads/photos/' ~ user.photo) if user.photo else url_for('static', filename='default/avatar.png') }}"
+      <img src="{{ url_for('media.user_photo', filename=user.photo) if user.photo else url_for('static', filename='default/avatar.png') }}"
            class="rounded-circle shadow" style="width: 90px; height: 90px; object-fit: cover;" alt="Profile">
       <div>
         <h2 class="fw-bold mb-0">{{ user.first_name }} {{ user.last_name }}</h2>
@@ -47,7 +47,7 @@
         <div class="col-12">
           <strong>Resume:</strong>
           {% if user.resume %}
-            <a href="{{ url_for('static', filename='uploads/resumes/' ~ user.resume) }}" class="btn btn-sm btn-success rounded-pill ms-2" download>
+            <a href="{{ url_for('main.download_resume', filename=user.resume) }}" class="btn btn-sm btn-success rounded-pill ms-2" download>
               Download Resume
             </a>
           {% else %}
@@ -93,6 +93,7 @@
                 </td>
                 <td>
                   <form action="{{ url_for('admin.remove_enrollment', enrollment_id=e.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Remove from course?')">
                       Remove
                     </button>
@@ -120,6 +121,7 @@
       </div>
       <div class="modal-body">
         <form method="POST" action="{{ url_for('admin.edit_user', user_id=user.id) }}" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">First Name</label>
