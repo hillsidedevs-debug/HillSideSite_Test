@@ -6,7 +6,7 @@ from HillSide.forms.captcha_form import CaptchaForm
 from datetime import datetime, timedelta
 import time
 import os
-from flask import send_from_directory, current_app
+from flask import send_from_directory, current_app, request
 
 main_bp = Blueprint('main', __name__)
 
@@ -123,3 +123,12 @@ def download_resume(filename):
     # This points to the absolute path of your root uploads folder
     resume_dir = os.path.join(current_app.root_path, '../uploads/resumes')
     return send_from_directory(resume_dir, filename, as_attachment=True)
+
+
+@main_bp.route('/upload-error')
+def upload_error():
+    flash("The file you uploaded exceeds the size limit. Please try a smaller file.", "danger")
+    
+    # redirect to the page they came from, or home page as a fallback
+    target = request.referrer or url_for('main.index')
+    return redirect(target)
