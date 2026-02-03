@@ -163,6 +163,7 @@
           {# ================= ENROLL ================= #}
           {% if current_user.is_authenticated and not current_user.is_admin() %}
           <form method="POST" action="{{ url_for('courses.enroll_course', course_id=course.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-3">
               <label for="city_town" class="form-label fw-semibold">
                 Which city/town are you joining from?
