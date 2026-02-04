@@ -52,7 +52,7 @@
             <div class="col-md-6 col-lg-4">
               <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden hover-lift">
                 {% if enrollment.course.image %}
-                  <img src="{{ url_for('static', filename='uploads/courses/' ~ enrollment.course.image) }}"
+                  <img src="/uploads/{{ enrollment.course.image }}"
                        class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ enrollment.course.title }}">
                 {% else %}
                   <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">

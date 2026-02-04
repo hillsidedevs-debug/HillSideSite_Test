@@ -95,18 +95,18 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     # Max upload size: 5 MB
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024
+    MAX_CONTENT_LENGTH = 200 * 1024 * 1024
 
     # Strict Cookie Security
-    SESSION_COOKIE_HTTPONLY = True
+    # SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SECURE = True  # Requires HTTPS
-    SESSION_COOKIE_SAMESITE = 'Lax'
+    # SESSION_COOKIE_SAMESITE = 'Lax'
     
     # REMEMBER: Set this to True to prevent "Remember Me" cookies 
     # from being stolen via XSS
-    REMEMBER_COOKIE_HTTPONLY = True
+    # REMEMBER_COOKIE_HTTPONLY = True
     REMEMBER_COOKIE_SECURE = True
-    REMEMBER_COOKIE_DURATION = timedelta(days=7)
+    # REMEMBER_COOKIE_DURATION = timedelta(days=7)
 
     # Use real Gmail SMTP
     MAIL_SERVER = 'smtp.gmail.com'
