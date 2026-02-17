@@ -175,52 +175,59 @@ def remove_enrollment(enrollment_id):
 
 #     return render_template('edit_course.html', course=course)
 
+import traceback
 @admin_bp.route('/course/edit/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def edit_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    form = EditCourseForm(obj=course)   # pre-populate fields
 
-    if form.validate_on_submit():
-        # Update text fields
-        course.title = form.title.data
-        course.description = form.description.data
-        course.start_date = form.start_date.data
-        course.duration_weeks = form.duration_weeks.data
-        course.total_seats = form.total_seats.data
-        course.who_is_this_for = form.who_is_this_for.data
-        course.learning_outcomes = form.learning_outcomes.data
-        course.course_structure = form.course_structure.data
-        course.instructor_name = form.instructor_name.data
-        course.instructor_bio = form.instructor_bio.data
-        course.faqs = form.faqs.data
+    try:
+        course = Course.query.get_or_404(course_id)
+        form = EditCourseForm(obj=course)   # pre-populate fields
 
-        # Handle image upload
-        if form.image.data:
-            # Optional: remove old image
-            if course.image:
-                old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], course.image)
-                if os.path.exists(old_path):
-                    os.remove(old_path)
+        if form.validate_on_submit():
+            # Update text fields
+            course.title = form.title.data
+            course.description = form.description.data
+            course.start_date = form.start_date.data
+            course.duration_weeks = form.duration_weeks.data
+            course.total_seats = form.total_seats.data
+            course.who_is_this_for = form.who_is_this_for.data
+            course.learning_outcomes = form.learning_outcomes.data
+            course.course_structure = form.course_structure.data
+            course.instructor_name = form.instructor_name.data
+            course.instructor_bio = form.instructor_bio.data
+            course.faqs = form.faqs.data
 
-            # Save new image
-            filename = secure_filename(form.image.data.filename)
-            # Optional: add unique prefix/timestamp
-            # filename = f"course_{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
-            
-            save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'courses', filename)
-            os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            form.image.data.save(save_path)
+            # Handle image upload
+            if form.image.data:
+                # Optional: remove old image
+                if course.image:
+                    old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], course.image)
+                    if os.path.exists(old_path):
+                        os.remove(old_path)
 
-            # Store relative path in DB
-            course.image = os.path.join('courses', filename)
+                # Save new image
+                filename = secure_filename(form.image.data.filename)
+                # Optional: add unique prefix/timestamp
+                # filename = f"course_{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
+                
+                save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'courses', filename)
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                form.image.data.save(save_path)
 
-        db.session.commit()
-        flash('✅ Course updated successfully!', 'success')
-        return redirect(url_for('admin.manage_courses'))
+                # Store relative path in DB
+                course.image = os.path.join('courses', filename)
 
-    return render_template('edit_course.html', form=form, course=course)
+            db.session.commit()
+            flash('✅ Course updated successfully!', 'success')
+            return redirect(url_for('admin.manage_courses'))
+
+        return render_template('edit_course.html', form=form, course=course)
+    except Exception as e:
+        print("─" * 60)
+        traceback.print_exc()
+        print("─" * 60)
 
 
 # @admin_bp.route('/staff/edit/<int:staff_id>', methods=['GET', 'POST'])
