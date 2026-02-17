@@ -176,14 +176,15 @@ def remove_enrollment(enrollment_id):
 #     return render_template('edit_course.html', course=course)
 
 import traceback
+import sys
+
 @admin_bp.route('/course/edit/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def edit_course(course_id):
-
     try:
         course = Course.query.get_or_404(course_id)
-        form = EditCourseForm(obj=course)   # pre-populate fields
+        form = EditCourseForm(obj=course)  # pre-populate fields
 
         if form.validate_on_submit():
             # Update text fields
@@ -209,10 +210,12 @@ def edit_course(course_id):
 
                 # Save new image
                 filename = secure_filename(form.image.data.filename)
-                # Optional: add unique prefix/timestamp
+                # Optional: make filename unique
                 # filename = f"course_{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
-                
-                save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'courses', filename)
+
+                save_path = os.path.join(
+                    current_app.config['UPLOAD_FOLDER'], 'courses', filename
+                )
                 os.makedirs(os.path.dirname(save_path), exist_ok=True)
                 form.image.data.save(save_path)
 
@@ -224,10 +227,16 @@ def edit_course(course_id):
             return redirect(url_for('admin.manage_courses'))
 
         return render_template('edit_course.html', form=form, course=course)
+
     except Exception as e:
-        print("─" * 60)
-        traceback.print_exc()
-        print("─" * 60)
+        # Force immediate visibility + clearer separation
+        print("═" * 70, file=sys.stderr, flush=True)
+        print(f"ERROR in edit_course (course_id={course_id}): {e}", file=sys.stderr, flush=True)
+        traceback.print_exc(file=sys.stderr)   # explicitly to stderr + default anyway
+        print("═" * 70, file=sys.stderr, flush=True)
+
+        # Still re-raise so you get proper 500 response
+        raise
 
 
 # @admin_bp.route('/staff/edit/<int:staff_id>', methods=['GET', 'POST'])
