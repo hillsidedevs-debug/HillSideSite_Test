@@ -177,6 +177,7 @@ def remove_enrollment(enrollment_id):
 
 import traceback
 import sys
+import uuid
 
 @admin_bp.route('/course/edit/<int:course_id>', methods=['GET', 'POST'])
 @login_required
@@ -201,26 +202,53 @@ def edit_course(course_id):
             course.faqs = form.faqs.data
 
             # Handle image upload
+            # if form.image.data:
+            #     # Optional: remove old image
+            #     if course.image:
+            #         old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], course.image)
+            #         if os.path.exists(old_path):
+            #             os.remove(old_path)
+
+            #     # Save new image
+            #     filename = secure_filename(form.image.data.filename)
+            #     # Optional: make filename unique
+            #     # filename = f"course_{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
+
+            #     save_path = os.path.join(
+            #         current_app.config['UPLOAD_FOLDER'], 'courses', filename
+            #     )
+            #     os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            #     form.image.data.save(save_path)
+
+            #     # Store relative path in DB
+            #     course.image = os.path.join('courses', filename)
             if form.image.data:
-                # Optional: remove old image
-                if course.image:
-                    old_path = os.path.join(current_app.config['UPLOAD_FOLDER'], course.image)
-                    if os.path.exists(old_path):
-                        os.remove(old_path)
-
-                # Save new image
-                filename = secure_filename(form.image.data.filename)
-                # Optional: make filename unique
-                # filename = f"course_{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
-
-                save_path = os.path.join(
-                    current_app.config['UPLOAD_FOLDER'], 'courses', filename
+                # 1. Use the same base path logic that works in add_course
+                upload_base = current_app.config.get(
+                    'UPLOAD_FOLDER',
+                    os.path.join(current_app.root_path, 'static', 'uploads')
                 )
-                os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                form.image.data.save(save_path)
 
-                # Store relative path in DB
-                course.image = os.path.join('courses', filename)
+                # 2. Safely handle old image removal
+                if course.image:
+                    # Use the same base to find the old file
+                    old_path = os.path.join(upload_base, course.image)
+                    try:
+                        if os.path.exists(old_path) and os.path.isfile(old_path):
+                            os.remove(old_path)
+                    except Exception as e:
+                        print(f"Non-critical cleanup error: {e}") # Don't let a delete failure crash the app
+
+                # 3. Save new image using the working style
+                original_filename = secure_filename(form.image.data.filename)
+                unique_filename = f"{uuid.uuid4().hex}_{original_filename}"
+                relative_path = os.path.join('courses', unique_filename)
+                
+                full_save_path = os.path.join(upload_base, relative_path)
+                os.makedirs(os.path.dirname(full_save_path), exist_ok=True)
+                
+                form.image.data.save(full_save_path)
+                course.image = relative_path # Update DB string
 
             db.session.commit()
             flash('✅ Course updated successfully!', 'success')
