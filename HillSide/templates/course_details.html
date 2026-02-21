@@ -110,17 +110,71 @@
           {% endif %}
 
           {# ================= COURSE STRUCTURE ================= #}
-          {% if course.course_structure %}
-          <div class="mb-5">
-            <h5 class="fw-semibold mb-2">Course structure</h5>
-            <ul class="mb-0">
-              {% for item in course.course_structure.split('\n') %}
-                <li>{{ item }}</li>
-              {% endfor %}
+{% if course.course_structure and course.course_structure.strip() %}
+<div class="mb-5">
+  <h5 class="fw-semibold mb-3">Course Structure</h5>
+
+  <div class="accordion accordion-flush" id="courseStructureAccordion">
+
+    {% set lines = course.course_structure.split('\n') %}
+    {% set current_module = namespace(value=None) %}
+
+    {% for line in lines %}
+      {% set stripped = line.strip() %}
+      {% if stripped %}
+
+        {% if not stripped.startswith(('-', '*', '•', '◦')) 
+           and not stripped.startswith((' ', '\t')) %}
+          {# ── New module title ── #}
+          {% if current_module.value is not none %}
             </ul>
-          </div>
+          </div>          {# close accordion-body #}
+        </div>            {# close collapse div #}
+      </div>              {# close accordion-item #}
           {% endif %}
 
+          {% set current_module.value = stripped %}
+
+          <div class="accordion-item border rounded-3 mb-2 shadow-sm">
+            <h2 class="accordion-header" id="heading-{{ loop.index }}">
+              <button class="accordion-button {% if not loop.first %}collapsed{% endif %}"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapse-{{ loop.index }}"
+                      aria-expanded="{% if loop.first %}true{% else %}false{% endif %}"
+                      aria-controls="collapse-{{ loop.index }}">
+                {{ current_module.value }}
+              </button>
+            </h2>
+            <div id="collapse-{{ loop.index }}"
+                 class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+                 aria-labelledby="heading-{{ loop.index }}"
+                 data-bs-parent="#courseStructureAccordion">
+              <div class="accordion-body pt-3">
+                <ul class="list-group list-group-flush">
+        {% else %}
+          {# ── Lesson / sub-item ── #}
+          {% if current_module.value is not none %}
+            <li class="list-group-item border-0 ps-4">
+              {{ stripped.lstrip('-*•◦ \t') }}
+            </li>
+          {% endif %}
+        {% endif %}
+
+      {% endif %}
+    {% endfor %}
+
+    {# ── Always close the last module if one was opened ── #}
+    {% if current_module.value is not none %}
+          </ul>
+        </div>          {# accordion-body #}
+      </div>            {# collapse #}
+    </div>              {# accordion-item #}
+    {% endif %}
+
+  </div>  {# accordion container #}
+</div>
+{% endif %}
           {# ================= INSTRUCTOR ================= #}
           {% if course.instructor_name %}
           <div class="mb-5">

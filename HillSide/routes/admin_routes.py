@@ -16,7 +16,7 @@ from sqlalchemy.orm import joinedload
 admin_bp = Blueprint('admin', __name__)
 
 
-UPLOAD_FOLDER = 'static/uploads/courses'
+# UPLOAD_FOLDER = 'static/uploads/courses'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
