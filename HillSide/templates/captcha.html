@@ -21,7 +21,7 @@
             {% endfor %}
             <p>{{ form.submit(class="btn") }}</p>
         </form>
-        <!-- {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <ul>
                     {% for message in messages %}
@@ -29,7 +29,7 @@
                     {% endfor %}
                 </ul>
             {% endif %}
-        {% endwith %} -->
+        {% endwith %}
     </div>
 </body>
 </html>

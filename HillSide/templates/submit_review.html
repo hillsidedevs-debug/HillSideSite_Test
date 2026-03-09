@@ -1,0 +1,83 @@
+{% extends "basic.html" %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-5">
+          <h2 class="fw-bold mb-4 text-center">Review "{{ course.title }}"</h2>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Rating (stars) -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Your Rating</label>
+              <div class="rating-stars d-flex gap-2 fs-3">
+                {% for i in range(1, 6) %}
+                  <input type="radio" name="rating" value="{{ i }}" id="star{{ i }}"
+                         class="d-none" required>
+                  <label for="star{{ i }}" class="text-warning cursor-pointer">
+                    ☆
+                  </label>
+                {% endfor %}
+              </div>
+              <small class="form-text text-muted">Click to rate 1–5 stars</small>
+            </div>
+
+            <!-- Comment -->
+            <div class="mb-4">
+              <label for="comment" class="form-label fw-semibold">Your Review (optional)</label>
+              <textarea
+                class="form-control"
+                id="comment"
+                name="comment"
+                rows="5"
+                placeholder="What did you like? Any suggestions? Be honest!"
+              ></textarea>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary btn-lg rounded-pill">
+                Submit Review
+              </button>
+            </div>
+          </form>
+
+          <div class="text-center mt-4">
+            <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="text-muted">
+              ← Back to course
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Simple JS to highlight selected stars -->
+<script>
+  document.querySelectorAll('input[name="rating"]').forEach(input => {
+    input.addEventListener('change', function() {
+      document.querySelectorAll('label[for^="star"]').forEach(label => {
+        label.textContent = '☆';
+        if (parseInt(label.getAttribute('for').replace('star', '')) <= this.value) {
+          label.textContent = '★';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

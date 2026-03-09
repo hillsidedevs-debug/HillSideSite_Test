@@ -5,7 +5,7 @@ from HillSide.forms.login_form import LoginForm
 from HillSide.forms.add_staff_form import AddStaffForm
 from HillSide.forms.edit_course_form import EditCourseForm
 from HillSide.extensions import db, bcrypt
-from HillSide.models import User, Enrollment, Course, RoleEnum, GenderEnum
+from HillSide.models import User, Enrollment, Course, RoleEnum, GenderEnum, Review
 import os
 from flask import current_app
 from werkzeug.utils import secure_filename
@@ -492,6 +492,72 @@ def edit_user(user_id):
 
     return redirect(url_for('admin.user_details', user_id=user.id))  # GET shows modal
 
+@admin_bp.route('/reviews')
+@login_required
+def reviews_list():
+    if not current_user.is_admin():  # using your existing is_staff() method
+        abort(403)
+
+    # Get all reviews, sorted by newest first
+    # You can add pagination later if needed
+    reviews = Review.query.order_by(Review.created_at.desc()).all()
+
+    # Optional: separate pending and approved for tabs or sections
+    pending_reviews = [r for r in reviews if not r.approved]
+    approved_reviews = [r for r in reviews if r.approved]
+
+    return render_template(
+        'admin_reviews.html',
+        pending_reviews=pending_reviews,
+        approved_reviews=approved_reviews,
+        total_pending=len(pending_reviews)
+    )
+
+@admin_bp.route('/review/<int:review_id>/approve', methods=['POST'])
+@login_required
+def approve_review(review_id):
+    if not current_user.is_staff():
+        abort(403)
+
+    review = Review.query.get_or_404(review_id)
+    
+    if review.approved:
+        flash("This review is already approved.", "info")
+    else:
+        review.approved = True
+        db.session.commit()
+        flash(f"Review by {review.user.username} approved.", "success")
+
+    return redirect(url_for('admin.reviews_list'))
+
+
+@admin_bp.route('/review/<int:review_id>/reject', methods=['POST'])
+@login_required
+def reject_review(review_id):
+    if not current_user.is_staff():
+        abort(403)
+
+    review = Review.query.get_or_404(review_id)
+    db.session.delete(review)  # or just set approved=False and add rejected_reason column later
+    db.session.commit()
+    
+    flash(f"Review by {review.user.username} rejected and removed.", "warning")
+    return redirect(url_for('admin.reviews_list'))
+
+
+@admin_bp.route('/review/<int:review_id>/delete', methods=['POST'])
+@login_required
+def delete_review(review_id):
+    if not current_user.is_admin():  # stricter: only full admins can permanently delete
+        abort(403)
+
+    review = Review.query.get_or_404(review_id)
+    username = review.user.username
+    db.session.delete(review)
+    db.session.commit()
+    
+    flash(f"Review by {username} permanently deleted.", "danger")
+    return redirect(url_for('admin.reviews_list'))
 @admin_bp.route("/users")
 def list_users():
     from HillSide.models import User

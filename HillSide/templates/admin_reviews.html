@@ -1,0 +1,92 @@
+{% extends "basic.html" %}  <!-- or your admin layout -->
+
+{% block title %}Admin - Manage Course Reviews{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Course Reviews Management</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h4>Pending Reviews ({{ total_pending }})</h4>
+    {% if pending_reviews %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in pending_reviews %}
+            <tr>
+                <td>{{ review.course.title }}</td>
+                <td>{{ review.user.username }} ({{ review.user.email }})</td>
+                <td>{{ review.rating }} ★</td>
+                <td>{{ review.comment | truncate(100) or 'No comment' }}</td>
+                <td>{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <form action="{{ url_for('admin.approve_review', review_id=review.id) }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form action="{{ url_for('admin.reject_review', review_id=review.id) }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Reject and delete this review?');">Reject</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p class="text-muted">No pending reviews at the moment.</p>
+    {% endif %}
+
+    <hr>
+
+    <h4>Approved Reviews</h4>
+    {% if approved_reviews %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>User</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th>Approved On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in approved_reviews %}
+            <tr>
+                <td>{{ review.course.title }}</td>
+                <td>{{ review.user.username }}</td>
+                <td>{{ review.rating }} ★</td>
+                <td>{{ review.comment | truncate(100) or 'No comment' }}</td>
+                <td>{{ review.updated_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>
+                    <form action="{{ url_for('admin.delete_review', review_id=review.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Permanently delete this approved review?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p class="text-muted">No approved reviews yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

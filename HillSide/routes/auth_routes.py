@@ -128,7 +128,7 @@ def login():
 
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-
+        print(f"Login attempt for email: {form.email.data}, User found: {bool(user)}")
         if not user or not bcrypt.check_password_hash(
             user.password, form.password.data
         ):
@@ -137,6 +137,7 @@ def login():
 
         if not user.is_verified:
             flash("Please verify your email before logging in.", "warning")
+            print
             return render_template(
                 "login.html", form=form,
                 show_resend=True, email=user.email

@@ -1,33 +1,3 @@
-# from flask import Flask
-# from HillSide.extensions import db, mail, bcrypt, login_manager, migrate
-# from HillSide.config import Config
-# from HillSide.routes import register_blueprints
-# from HillSide.models import User
-
-
-# def create_app():
-#     app = Flask(__name__)
-#     app.config.from_object(Config)
-
-
-
-#     db.init_app(app)
-#     mail.init_app(app)
-#     bcrypt.init_app(app)
-#     login_manager.init_app(app)
-#     migrate.init_app(app, db)
-
-#     register_blueprints(app)
-
-#     with app.app_context():
-#         db.create_all()  # Creates all tables defined in models
-#         print("Database initialized successfully!")
-
-#     @login_manager.user_loader
-#     def load_user(user_id):
-#         return User.query.get(int(user_id))
-
-#     return app
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -58,24 +28,32 @@ def create_app(config_object=None):
     env = os.getenv("FLASK_ENV", "development")
 
     csp = {
-        'default-src': "'self'",
-        'style-src': [
-            "'self'",
-            'https://cdn.jsdelivr.net',
-            'https://fonts.googleapis.com',
-            "'unsafe-inline'"  # Required for many Bootstrap components and Flask-WTF error styling
-        ],
-        'script-src': [
-            "'self'",
-            'https://cdn.jsdelivr.net',
-            'https://code.jquery.com', # Add this if you use jQuery
-            "'unsafe-inline'"          # Use with caution; allows inline <script> tags
-        ],
-        'font-src': [
-            "'self'",
-            'https://fonts.gstatic.com'
-        ],
-        'img-src': ["'self'", 'data:'] # 'data:' allows base64 encoded images
+            'default-src': "'self'",
+            'style-src': [
+                "'self'",
+                'https://cdn.jsdelivr.net',
+                'https://fonts.googleapis.com',
+                "'unsafe-inline'"
+            ],
+            'script-src': [
+                "'self'",
+                'https://cdn.jsdelivr.net',
+                'https://code.jquery.com',
+                'https://www.google.com',
+                'https://www.gstatic.com',
+                "'unsafe-inline'"
+            ],
+            'frame-src': [  # <--- ADD THIS SECTION
+                "'self'",
+                'https://www.google.com',
+                'https://recaptcha.google.com'
+            ],
+            'font-src': [
+                "'self'",
+                'https://fonts.gstatic.com',
+                'https://www.google.com'
+            ],
+            'img-src': ["'self'", 'data:']
     }
 
     # Initialize Talisman

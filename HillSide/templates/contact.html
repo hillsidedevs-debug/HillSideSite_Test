@@ -44,6 +44,13 @@
               <div class="text-danger small">{{ error }}</div>
             {% endfor %}
           </div>
+
+          <div class="mb-3">
+            {{ form.recaptcha }}
+            {% for error in form.recaptcha.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+        </div>
           <div class="d-grid">
             {{ form.submit(class="btn btn-primary btn-lg") }}
           </div>
@@ -52,6 +59,4 @@
     </div>
   </div>
 </section>
-
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %}

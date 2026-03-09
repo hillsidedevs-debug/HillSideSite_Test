@@ -57,6 +57,15 @@ class User(db.Model, UserMixin):
         back_populates='user',
         cascade='all, delete-orphan'
     )
+    
+
+# In Course (you already have this – just confirming)
+    reviews = db.relationship(
+        'Review',
+        back_populates='user',
+        cascade='all, delete-orphan',
+        lazy='dynamic'
+    )
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -80,39 +89,6 @@ class User(db.Model, UserMixin):
         except Exception:
             return None
         return User.query.filter_by(email=email).first()
-    # def get_reset_token(self):
-    #     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    #     return s.dumps(self.email, salt='password-reset-salt')
-    
-    # @staticmethod
-    # def verify_reset_token(token, expiration=3600):
-    #     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    #     try:
-    #         email = s.loads(token, salt='password-reset-salt', max_age=expiration)
-    #     except:
-    #         return None
-    #     return User.query.filter_by(email=email).first()
-
-    # def get_reset_token(self):
-    #     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    #     # Including a slice of the password hash in the salt 
-    #     # ensures the token becomes invalid if the password changes.
-    #     return s.dumps(self.email, salt=f'reset-salt-{self.password[:10]}')
-
-    # @staticmethod
-    # def verify_reset_token(token, expiration=3600):
-    #     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    #     try:
-    #         # 1. Unsign without validation to get the email
-    #         email = s.loads(token, salt=None) 
-    #         user = User.query.filter_by(email=email).first()
-    #         if not user:
-    #             return None
-    #         # 2. Re-verify with the actual password-based salt
-    #         s.loads(token, salt=f'reset-salt-{user.password[:10]}', max_age=expiration)
-    #         return user
-    #     except Exception:
-    #         return None
 
 
 class Course(db.Model):
@@ -143,10 +119,27 @@ class Course(db.Model):
         back_populates='course',
         cascade='all, delete-orphan'
     )
+    reviews = db.relationship(
+        'Review',
+        back_populates='course',
+        cascade='all, delete-orphan',     # optional – deletes reviews if user is deleted
+        lazy='dynamic'                     # optional but recommended for large numbers
+    )
 
     @property
     def seats_left(self):
         return self.total_seats - len(self.enrollments) if self.total_seats else None
+    
+    @property
+    def average_rating(self):
+        approved_reviews = [r for r in self.reviews if r.approved]
+        if not approved_reviews:
+            return 0.0
+        return round(sum(r.rating for r in approved_reviews) / len(approved_reviews), 1)
+
+    @property
+    def rating_count(self):
+        return len([r for r in self.reviews if r.approved])
 
 
 class Enrollment(db.Model):
@@ -164,3 +157,24 @@ class Enrollment(db.Model):
 
     def __repr__(self):
         return f'<Enrollment user={self.user_id} course={self.course_id}>'
+
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)           # 1–5
+    comment = db.Column(db.Text, nullable=True)
+    approved = db.Column(db.Boolean, default=False, nullable=False)   # ← NEW: False = pending
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = db.relationship('User', back_populates='reviews')
+    course = db.relationship('Course', back_populates='reviews')
+
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'course_id', name='unique_user_course_review'),
+    )
+
+    def __repr__(self):
+        return f'<Review user={self.user_id} course={self.course_id} rating={self.rating} approved={self.approved}>'

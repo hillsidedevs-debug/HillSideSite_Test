@@ -6,7 +6,7 @@ import os
 
 
 from HillSide.extensions import db
-from HillSide.models import Course, Enrollment
+from HillSide.models import Course, Enrollment, Review
 from HillSide.utils import admin_required, is_valid_file
 from HillSide.forms.add_course_form import CourseForm
 
@@ -31,9 +31,9 @@ def allowed_file(filename):
 
 
 from flask import current_app
-from werkzeug.utils import secure_filename
+from werkzeug.utils  import secure_filename
 import uuid
-import os
+import os 
 
 
 @courses_bp.route('/add-course', methods=['GET', 'POST'])
@@ -114,7 +114,21 @@ def list_courses():
 @courses_bp.route('/courses/<int:course_id>')
 def course_details(course_id):
     course = Course.query.get_or_404(course_id)
-    return render_template('course_details.html', course=course)
+    
+    # Get the 10 most recent approved reviews
+    approved_reviews = (
+        Review.query
+        .filter_by(course_id=course.id, approved=True)
+        .order_by(Review.created_at.desc())
+        .limit(10)
+        .all()
+    )
+    
+    return render_template(
+        'course_details.html',
+        course=course,
+        approved_reviews=approved_reviews
+    )
 
 @courses_bp.route('/courses/<int:course_id>/upload-video', methods=['POST'])
 @login_required
@@ -186,3 +200,62 @@ def enroll_course(course_id):
 
     flash('Successfully enrolled in the course!', 'success')
     return redirect(url_for('courses.course_details', course_id=course.id))
+
+@courses_bp.route('/courses/<int:course_id>/review', methods=['GET', 'POST'])
+@login_required
+def submit_review(course_id):
+    course = Course.query.get_or_404(course_id)
+
+    # Only allow review if enrolled and course is completed (or dropped, your choice)
+    enrollment = Enrollment.query.filter_by(
+        user_id=current_user.id,
+        course_id=course.id
+    ).first()
+
+    if not enrollment:
+        flash("You must be enrolled in this course to leave a review.", "warning")
+        return redirect(url_for('courses.course_details', course_id=course.id))
+
+    # if enrollment.status not in ['completed', 'dropped']:
+    #     flash("You can only review courses you've completed.", "warning")
+    #     return redirect(url_for('courses.course_details', course_id=course.id))
+
+    # Prevent duplicate reviews
+    existing_review = Review.query.filter_by(
+        user_id=current_user.id,
+        course_id=course.id
+    ).first()
+
+    if existing_review:
+        flash("You have already submitted a review for this course.", "info")
+        return redirect(url_for('courses.course_details', course_id=course.id))
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        comment = request.form.get('comment', '').strip()
+
+        try:
+            rating = int(rating)
+            if not 1 <= rating <= 5:
+                raise ValueError
+        except (ValueError, TypeError):
+            flash("Please select a valid rating (1–5 stars).", "danger")
+            return redirect(request.url)
+
+        # Create pending review
+        review = Review(
+            user_id=current_user.id,
+            course_id=course.id,
+            rating=rating,
+            comment=comment if comment else None,
+            approved=False  # pending moderation
+        )
+
+        db.session.add(review)
+        db.session.commit()
+
+        flash("Thank you! Your review has been submitted and is pending approval.", "success")
+        return redirect(url_for('courses.course_details', course_id=course.id))
+
+    # GET: show the form
+    return render_template('submit_review.html', course=course)
