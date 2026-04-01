@@ -51,7 +51,8 @@ def create_app(config_object=None):
             'font-src': [
                 "'self'",
                 'https://fonts.gstatic.com',
-                'https://www.google.com'
+                'https://www.google.com',
+                'https://cdn.jsdelivr.net'
             ],
             'img-src': ["'self'", 'data:']
     }
