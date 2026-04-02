@@ -26,14 +26,12 @@
             min-height: 100vh;
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: #2d3748;
-            -webkit-font-smoothing: antialiased;
         }
 
-        /* Modern Sticky Navbar */
+        /* Sticky Navbar */
         .navbar {
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
             padding: 0.75rem 0;
         }
 
@@ -49,29 +47,14 @@
             font-weight: 500;
             color: #4a5568 !important;
             padding: 0.5rem 1.2rem !important;
-            position: relative;
+            transition: color 0.2s ease;
         }
 
-        .nav-link:hover { color: var(--primary-blue) !important; }
-
-        /* Animated Underline */
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 5px;
-            left: 50%;
-            background-color: var(--primary-blue);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-blue) !important;
         }
-
-        .nav-link:hover::after { width: 60%; }
 
         main { flex: 1; }
-
-        footer { border-top: 1px solid #2d3748; }
     </style>
 </head>
 <body>
@@ -80,7 +63,7 @@
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('main.index') }}">
             <img src="{{ url_for('static', filename='images/Hillside.png') }}" alt="Logo" style="height: 50px; width: auto;">
-            <span>Hillside</span>
+            <span>Hillside Software</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -95,17 +78,25 @@
 
                 {% if current_user.is_authenticated %}
                     {% if current_user.is_admin() %}
-                        <li class="nav-item"><a class="nav-link text-primary" href="{{url_for('admin.admin_dashboard')}}">Admin</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('courses.add_course') }}">Add Course</a></li>
+                        <li class="nav-item"><a class="nav-link text-primary fw-bold" href="{{url_for('admin.admin_dashboard')}}">Admin Panel</a></li>
+                    {% else %}
+                        {% if current_user.is_staff() %}
+                            <li class="nav-item"><a class="nav-link" href="{{url_for('staff.staff_dashboard')}}">Staff Account</a></li>
+                        {% else %}
+                            <li class="nav-item"><a class="nav-link" href="{{url_for('auth.dashboard')}}">Account</a></li>
+                        {% endif %}
                     {% endif %}
-                    <li class="nav-item">
+
+                    <li class="nav-item ms-lg-2">
                         <form method="POST" action="{{ url_for('auth.logout') }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="nav-link border-0 bg-transparent">Log Out</button>
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">Log Out</button>
                         </form>
                     </li>
                 {% else %}
                     <li class="nav-item"><a class="nav-link" href="{{url_for('auth.login')}}">Log In</a></li>
-                    <li class="nav-item"><a href="{{url_for('auth.register')}}" class="btn btn-primary rounded-pill ms-lg-3 px-4">Join Now</a></li>
+                    <li class="nav-item"><a href="{{url_for('auth.register')}}" class="btn btn-primary rounded-pill ms-lg-3 px-4">Register</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -116,7 +107,7 @@
     {% if messages %}
     <div class="container mt-3">
         {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -128,20 +119,65 @@
 <main>
     {% block content %}{% endblock %}
 </main>
-
-<footer class="bg-dark text-white-50 py-5">
+<footer class="bg-dark text-white py-5 border-top border-secondary">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                <img src="{{ url_for('static', filename='images/Hillside.png') }}" alt="Logo" class="mb-2" style="max-height: 40px; filter: brightness(0) invert(1);">
-                <p class="small mb-0">&copy; 2026 Hillside Software</p>
+        <div class="row g-4">
+            <div class="col-lg-4 text-center text-lg-start">
+                <img src="{{ url_for('static', filename='images/Hillside.png') }}" 
+                     alt="Hillside Logo" 
+                     class="mb-3" 
+                     style="max-height: 50px; filter: brightness(0) invert(1);">
+                <p class="small text-white-50 pe-lg-5">
+                    Empowering businesses through custom development, strategic consultation, and elite technical education.
+                </p>
             </div>
-            <div class="col-md-6 text-center text-md-end">
-                <p class="small mb-0 text-white-50">Empowering the next generation of builders.</p>
+
+            <div class="col-6 col-lg-2 offset-lg-2">
+                <h6 class="fw-bold mb-3">Platform</h6>
+                <ul class="list-unstyled small text-white-50">
+                    <li class="mb-2"><a href="{{ url_for('main.index') }}" class="text-reset text-decoration-none hover-link">Home</a></li>
+                    <li class="mb-2"><a href="{{ url_for('main.about') }}" class="text-reset text-decoration-none hover-link">About Us</a></li>
+                    <li class="mb-2"><a href="{{ url_for('main.contact') }}" class="text-reset text-decoration-none hover-link">Contact</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <h6 class="fw-bold mb-3">Connect</h6>
+                <ul class="list-unstyled small text-white-50">
+                    <li class="mb-2"><i class="bi bi-envelope me-2"></i> info@hillside.com</li>
+                    <li class="mb-2"><i class="bi bi-geo-alt me-2"></i> New York, NY</li>
+                    <li class="mb-2">
+                        <div class="d-flex gap-3 mt-3">
+                            <a href="#" class="text-white"><i class="bi bi-linkedin"></i></a>
+                            <a href="#" class="text-white"><i class="bi bi-github"></i></a>
+                            <a href="#" class="text-white"><i class="bi bi-twitter-x"></i></a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="my-4 border-secondary opacity-25">
+
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start">
+                <p class="small text-white-50 mb-0">&copy; 2026 Hillside Software. All rights reserved.</p>
+            </div>
+            <div class="col-md-6 text-center text-md-end mt-2 mt-md-0">
+                <a href="#" class="text-white-50 text-decoration-none small mx-2">Privacy Policy</a>
+                <a href="#" class="text-white-50 text-decoration-none small mx-2">Terms of Service</a>
             </div>
         </div>
     </div>
 </footer>
+
+<style>
+    .hover-link:hover {
+        color: #0d6efd !important;
+        padding-left: 5px;
+        transition: all 0.3s ease;
+    }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

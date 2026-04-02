@@ -1,64 +1,191 @@
 {% extends "basic.html" %}
 
+{% block extra_styles %}
+<style>
+    /* Consistent Spacing */
+    .section-padding { padding: 8rem 0; }
+    
+    .icon-box {
+        width: 60px; height: 60px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 12px; margin-bottom: 1.5rem;
+    }
+
+    .video-container {
+        position: relative; border-radius: 20px; overflow: hidden;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Stats Styling */
+    .stat-card {
+        border-right: 1px solid #dee2e6;
+    }
+    @media (max-width: 768px) {
+        .stat-card { border-right: none; border-bottom: 1px solid #dee2e6; padding-bottom: 2rem; margin-bottom: 2rem; }
+    }
+    .stat-card:last-child { border: none; }
+
+    /* Contact Info Box */
+    .contact-info-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+
+    h1, h2, h5 { letter-spacing: -0.02em; }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<section class="py-5 bg-light text-center">
-  <div class="container">
-    <h1 class="display-4 fw-bold">About Us</h1>
-    <p class="lead text- ">
-      Empowering businesses and students through technology, innovation, and mentorship.
+<section class="py-6 text-center bg-white border-bottom">
+  <div class="container py-5">
+    <h6 class="text-primary fw-bold text-uppercase tracking-widest mb-3">Our Mission</h6>
+    <h1 class="display-3 fw-bold mb-3">Building the <span class="text-primary">Future</span> Together</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 750px;">
+      Empowering businesses and students through cutting-edge technology, strategic innovation, and hands-on mentorship.
     </p>
   </div>
 </section>
 
-<section class="py-5">
+<section class="section-padding">
   <div class="container">
-    <div class="row align-items-center">
-      <div class="col-md-6">
-        <video autoplay muted loop playsinline class="w-100 rounded-3 shadow-sm">
-          <source src="/static/videos/about-video.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="video-container">
+          <video autoplay muted loop playsinline class="w-100 d-block">
+            <source src="{{ url_for('static', filename='videos/about-video.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </div>
-      <div class="col-md-6">
-        <h2 class="fw-bold mb-3">Who We Are</h2>
-        <p>
-          We’re a team of passionate developers, consultants, and educators dedicated to helping organizations
-          innovate and students grow their skills. Our mission is to bridge the gap between technology and people.
+      <div class="col-lg-6">
+        <h2 class="display-5 fw-bold mb-4">Who We Are</h2>
+        <p class="fs-5 text-muted mb-4">
+          Hillside Software is a multi-disciplinary tech collective focused on high-performance development and practical education.
         </p>
-        <p>
-          From building scalable software to mentoring future developers, we believe in practical solutions that
-          drive real results.
+        <p class="text-muted">
+          Based on the principle that technology should be accessible and impactful, we bridge the gap between complex engineering and human-centric design. Whether we are architecting an enterprise solution or teaching a teenager their first lines of Python, our goal remains the same: <strong>Excellence through empowerment.</strong>
         </p>
       </div>
     </div>
   </div>
 </section>
 
-<section class="py-5 bg-light text-center">
+<!-- <section class="py-5 bg-white border-top border-bottom">
   <div class="container">
-    <h2 class="fw-bold mb-4">Our Philosophy</h2>
-    <div class="row">
+    <div class="row text-center py-4">
+      <div class="col-md-3 stat-card">
+        <h2 class="fw-bold text-primary mb-1">150+</h2>
+        <p class="text-muted small text-uppercase fw-bold">Projects Delivered</p>
+      </div>
+      <div class="col-md-3 stat-card">
+        <h2 class="fw-bold text-primary mb-1">500+</h2>
+        <p class="text-muted small text-uppercase fw-bold">Students Trained</p>
+      </div>
+      <div class="col-md-3 stat-card">
+        <h2 class="fw-bold text-primary mb-1">10+</h2>
+        <p class="text-muted small text-uppercase fw-bold">Expert Mentors</p>
+      </div>
+      <div class="col-md-3 stat-card">
+        <h2 class="fw-bold text-primary mb-1">24/7</h2>
+        <p class="text-muted small text-uppercase fw-bold">Tech Support</p>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+<section class="section-padding bg-light">
+  <div class="container">
+    <div class="text-center mb-5 pb-3">
+      <h2 class="fw-bold display-6">Our Philosophy</h2>
+      <div class="mx-auto mt-3" style="width: 50px; height: 5px; background-color: #0d6efd; border-radius: 10px;"></div>
+    </div>
+    
+    <div class="row g-4">
       <div class="col-md-4">
-        <h5 class="fw-semibold">Innovation</h5>
-        <p class="text-muted">We embrace new technologies to deliver modern, scalable solutions.</p>
+        <div class="card h-100 border-0 shadow-sm p-4 hover-lift rounded-4">
+          <div class="card-body">
+            <div class="icon-box bg-primary bg-opacity-10 text-primary">
+              <i class="bi bi-rocket-takeoff fs-3"></i>
+            </div>
+            <h5 class="fw-bold">Innovation</h5>
+            <p class="text-muted small mb-0">We embrace modern, battle-tested technologies to deliver scalable, future-proof solutions.</p>
+          </div>
+        </div>
       </div>
       <div class="col-md-4">
-        <h5 class="fw-semibold">Collaboration</h5>
-        <p class="text-muted">We work closely with clients and students to ensure meaningful outcomes.</p>
+        <div class="card h-100 border-0 shadow-sm p-4 hover-lift rounded-4">
+          <div class="card-body">
+            <div class="icon-box bg-success bg-opacity-10 text-success">
+              <i class="bi bi-people fs-3"></i>
+            </div>
+            <h5 class="fw-bold">Collaboration</h5>
+            <p class="text-muted small mb-0">We don't work for you; we work with you. Partnership is the engine of our creativity.</p>
+          </div>
+        </div>
       </div>
       <div class="col-md-4">
-        <h5 class="fw-semibold">Growth</h5>
-        <p class="text-muted">We invest in learning, sharing knowledge, and building a better digital future.</p>
+        <div class="card h-100 border-0 shadow-sm p-4 hover-lift rounded-4">
+          <div class="card-body">
+            <div class="icon-box bg-warning bg-opacity-10 text-warning">
+              <i class="bi bi-graph-up fs-3"></i>
+            </div>
+            <h5 class="fw-bold">Growth</h5>
+            <p class="text-muted small mb-0">Education is in our DNA. We invest in continuous learning for our team and our students.</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="py-5 text-center">
+<section class="section-padding bg-white">
   <div class="container">
-    <h3 class="fw-bold mb-3">Want to work or learn with us?</h3>
-    <a href="{{url_for('main.contact')}}" class="btn btn-primary btn-lg">Get in Touch</a>
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-5">
+        <h6 class="text-primary fw-bold text-uppercase tracking-widest mb-3">Visit Us</h6>
+        <h2 class="display-6 fw-bold mb-4">Our Presence</h2>
+        <p class="text-muted mb-5">Located in the heart of the tech district, our facility is designed for collaboration, deep work, and high-end training.</p>
+        
+        <div class="contact-info-card p-4 shadow-sm mb-3 d-flex align-items-center">
+          <div class="icon-box bg-primary bg-opacity-10 text-primary mb-0 me-4" style="width: 50px; height: 50px;">
+            <i class="bi bi-geo-alt fs-4"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-1">Address</h6>
+            <p class="text-muted small mb-0">123 Hillside Avenue, Tech District, NY 10001</p>
+          </div>
+        </div>
+
+        <div class="contact-info-card p-4 shadow-sm d-flex align-items-center">
+          <div class="icon-box bg-success bg-opacity-10 text-success mb-0 me-4" style="width: 50px; height: 50px;">
+            <i class="bi bi-telephone fs-4"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold mb-1">Phone & Email</h6>
+            <p class="text-muted small mb-0">+1 (555) 000-0000 | info@hillside.com</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-7">
+        <div class="rounded-4 overflow-hidden shadow-lg" style="height: 400px; background-color: #f0f0f0;">
+          <img src="static/images/dev-lab.jpeg" class="w-100 h-100" style="object-fit: cover;" alt="Our Lab">
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
+<div class="bg-primary bg-opacity-10 text-dark py-6 text-center border-top border-bottom border-primary-subtle">
+  <div class="container py-5">
+    <h2 class="display-5 fw-bold mb-4 text-primary">Ready to take the next step?</h2>
+    <p class="lead mb-5 text-muted">Join Hillside Software and start building the future today.</p>
+    <a href="{{url_for('main.contact')}}" class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold shadow">Get in Touch Today</a>
+  </div>
+</div>
+
+
 {% endblock %}

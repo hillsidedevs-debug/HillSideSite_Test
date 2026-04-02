@@ -1,94 +1,152 @@
 {% extends "basic.html" %}
 
+{% block extra_styles %}
+<style>
+    /* 1. Catalog Header */
+    .catalog-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 5rem 0;
+        margin-top: -1.5rem; /* Meet the sticky navbar */
+    }
+
+    /* 2. Enhanced Course Cards */
+    .course-card {
+        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        background: white;
+    }
+    .course-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+    }
+    .card-img-container {
+        position: relative;
+        overflow: hidden;
+    }
+    .course-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 2;
+        backdrop-filter: blur(4px);
+        background: rgba(255, 255, 255, 0.9);
+        color: #0d6efd;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 50px;
+    }
+
+    /* 3. Modern Pagination */
+    .pagination .page-link {
+        border: none;
+        margin: 0 3px;
+        border-radius: 8px !important;
+        color: #4a5568;
+        font-weight: 600;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+    }
+
+    .section-padding { padding: 5rem 0; }
+</style>
+{% endblock %}
+
 {% block content %}
 
-<div class="container my-5">
-  <div class="text-center mb-5">
-    <h1 class="fw-bold">All Courses</h1>
-    <p class="text-muted">Browse through all available courses.</p>
-    {% if current_user.is_authenticated and current_user.is_admin() %}
-    <a href="{{ url_for('courses.add_course') }}" class="btn btn-primary rounded-pill">
-      <i class="bi bi-plus-circle me-2"></i> Add New Course
-    </a>
-    {% endif %}
-  </div>
-
-  <div class="row g-4">
-    {% for course in courses %}
-    <div class="col-md-6 col-lg-4">
-      <a
-        href="{{ url_for('courses.course_details', course_id=course.id) }}"
-        class="text-decoration-none text-dark"
-      >
-        <div class="card h-100 shadow-sm border-0 rounded-4 course-card">
-          {% if course.image %}
-          <img
-            src="/uploads/{{ course.image }}"
-            class="card-img-top rounded-top-4"
-            style="height: 200px; object-fit: cover;"
-            alt="{{ course.title }}"
-          />
-          {% else %}
-          <div
-            class="d-flex align-items-center justify-content-center bg-light"
-            style="height: 200px;"
-          >
-            <i class="bi bi-image text-muted fs-1"></i>
-          </div>
-          {% endif %}
-
-          <div class="card-body text-center">
-            <h5 class="card-title fw-semibold">{{ course.title }}</h5>
-            <p class="text-muted">{{ course.description[:100] }}{% if course.description|length > 100 %}...{% endif %}</p>
-          </div>
-        </div>
-      </a>
-    </div>
-    {% else %}
-    <p class="text-center text-muted mt-5">+
-      No courses found.
-      {% if current_user.is_authenticated and (current_user.is_admin() or current_user.is_staff()) %}  
-        <a href="{{ url_for('courses.add_course') }}">Add one now!</a>
-      {% endif %}
-    </p>
-    {% endfor %}
-  </div>
-</div>
-
-{% if pagination.pages > 1 %}
-<div class="d-flex justify-content-center mt-4">
-  <nav>
-    <ul class="pagination">
-      <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-        <a class="page-link" href="?page={{ pagination.prev_num }}">Previous</a>
-      </li>
-
-
-        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-        {% if page_num %}
-          <li class="page-item {% if pagination.page == page_num %}active{% endif %}">
-            <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
-          </li>
-        {% else %}
-          <li class="page-item disabled"><span class="page-link">…</span></li>
+<div class="catalog-header mb-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">Master Your Future</h1>
+        <p class="lead text-muted mb-4">Explore our industry-leading courses in development and technology.</p>
+        
+        {% if current_user.is_authenticated and current_user.is_admin() %}
+        <a href="{{ url_for('courses.add_course') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow">
+            <i class="bi bi-plus-circle me-2"></i> Add New Course
+        </a>
         {% endif %}
-      {% endfor %}
-
-      <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-        <a class="page-link" href="?page={{ pagination.next_num }}">Next</a>
-      </li>
-    </ul>
-  </nav>
+    </div>
 </div>
 
-{% endif %}
-<style>
-  .course-card {
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-  .course-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,0.1);
-  }
-</style>
+<div class="container section-padding">
+    <div class="row g-4">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ url_for('courses.course_details', course_id=course.id) }}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 rounded-4 course-card">
+                    <div class="card-img-container">
+                        <span class="course-badge shadow-sm">Offline Learning</span>
+                        
+                        {% if course.image %}
+                        <img src="/uploads/{{ course.image }}"
+                             class="card-img-top rounded-top-4"
+                             style="height: 220px; object-fit: cover;"
+                             alt="{{ course.title }}">
+                        {% else %}
+                        <div class="d-flex align-items-center justify-content-center bg-light" style="height: 220px;">
+                            <i class="bi bi-code-square text-primary opacity-25" style="font-size: 4rem;"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body p-4 text-center">
+                        <h5 class="card-title fw-bold text-dark mb-3">{{ course.title }}</h5>
+                        <p class="text-muted small mb-4">
+                            {{ course.description[:95] }}{% if course.description|length > 95 %}...{% endif %}
+                        </p>
+                        <div class="mt-auto">
+                            <span class="btn btn-link text-primary p-0 fw-bold text-decoration-none">
+                                View Details <i class="bi bi-arrow-right ms-1"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="opacity-50 mb-3">
+                <i class="bi bi-search" style="font-size: 4rem;"></i>
+            </div>
+            <p class="text-muted fs-5">No courses found matching your criteria.</p>
+            {% if current_user.is_authenticated and (current_user.is_admin() or current_user.is_staff()) %}  
+                <a href="{{ url_for('courses.add_course') }}" class="btn btn-outline-primary rounded-pill mt-2">Create the first course</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center mt-5">
+        <nav aria-label="Page navigation">
+            <ul class="pagination pagination-lg">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link shadow-sm" href="?page={{ pagination.prev_num }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if pagination.page == page_num %}active{% endif %}">
+                            <a class="page-link shadow-sm" href="?page={{ page_num }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link shadow-sm" href="?page={{ pagination.next_num }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
 {% endblock %}

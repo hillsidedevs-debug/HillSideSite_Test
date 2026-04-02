@@ -124,10 +124,16 @@ def course_details(course_id):
         .all()
     )
     
+    is_enrolled = False
+    if current_user.is_authenticated:
+        enrollment = Enrollment.query.filter_by(user_id=current_user.id, course_id=course_id).first()
+        if enrollment:
+            is_enrolled=True
     return render_template(
         'course_details.html',
         course=course,
-        approved_reviews=approved_reviews
+        approved_reviews=approved_reviews,
+        is_enrolled=is_enrolled
     )
 
 @courses_bp.route('/courses/<int:course_id>/upload-video', methods=['POST'])

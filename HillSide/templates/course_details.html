@@ -235,7 +235,7 @@
 
 
           {# ================= ENROLL ================= #}
-          {% if current_user.is_authenticated and not current_user.is_admin() %}
+          <!-- {% if current_user.is_authenticated and not current_user.is_admin() %}
           <form method="POST" action="{{ url_for('courses.enroll_course', course_id=course.id) }}" class="mt-5">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-3">
@@ -262,7 +262,62 @@
           <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary rounded-pill px-4 mt-5">
             <i class="bi bi-box-arrow-in-right me-2"></i> Login to Enroll
           </a>
-          {% endif %}
+          {% endif %} -->
+          {# ================= ENROLLMENT STATUS / FORM ================= #}
+<div class="mt-5 pt-4 border-top">
+  {% if not current_user.is_authenticated %}
+    <div class="text-center">
+      <p class="text-muted">Ready to start your journey?</p>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg rounded-pill px-5 shadow">
+        <i class="bi bi-box-arrow-in-right me-2"></i> Login to Enroll
+      </a>
+    </div>
+
+  {% elif current_user.is_admin() %}
+    <div class="alert alert-info rounded-4 border-0 shadow-sm">
+      <i class="bi bi-shield-lock me-2"></i> <strong>Admin View:</strong> You are viewing this page as an administrator.
+    </div>
+
+  {% elif is_enrolled %}
+    {# IF STUDENT IS ALREADY ENROLLED #}
+    <div class="card bg-primary bg-opacity-10 border-0 rounded-4 p-4 text-center">
+      <h4 class="fw-bold text-primary mb-3">You're already on board!</h4>
+      <p class="text-muted mb-4">You are currently enrolled in this course. Ready to continue your lessons?</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('auth.dashboard') }}" class="btn btn-primary btn-lg rounded-pill px-5 shadow">
+          <i class="bi bi-speedometer2 me-2"></i> Go to Dashboard
+        </a>
+      </div>
+    </div>
+
+  {% else %}
+    {# IF STUDENT IS NOT ENROLLED #}
+    <div class="card border-0 bg-light rounded-4 p-4 p-lg-5">
+      <h4 class="fw-bold mb-4">Secure Your Spot</h4>
+      <form method="POST" action="{{ url_for('courses.enroll_course', course_id=course.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="mb-4">
+          <label for="city_town" class="form-label fw-bold small text-uppercase text-muted">
+            Which city/town are you joining from?
+          </label>
+          <input
+            type="text"
+            class="form-control form-control-lg rounded-3"
+            id="city_town"
+            name="city_town"
+            placeholder="e.g. Nairobi, Mumbai, London..."
+            required
+          />
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 shadow">
+          <i class="bi bi-plus-circle me-2"></i> Enroll in Course
+        </button>
+      </form>
+    </div>
+  {% endif %}
+</div>
 
         </div> <!-- card-body -->
       </div> <!-- card -->
