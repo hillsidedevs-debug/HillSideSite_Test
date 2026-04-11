@@ -1,151 +1,254 @@
 {% extends "basic.html" %}
 
+{% block extra_styles %}
+<style>
+    body { background-color: #f4f7f6; }
+    .main-card { border: none; border-radius: 1.5rem; }
+    
+    /* Sticky Sidebar for Assigner */
+    @media (min-min-width: 992px) {
+        .sticky-column {
+            position: sticky;
+            top: 100px;
+            height: calc(100vh - 120px);
+        }
+    }
+
+    /* Drag & Drop Styling */
+    .course-column {
+        background: #f8f9fa;
+        border: 2px dashed #e2e8f0;
+        border-radius: 1rem;
+        min-height: 350px;
+        max-height: 500px;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+    }
+    .course-item {
+        background: white;
+        margin-bottom: 8px;
+        padding: 10px 15px;
+        border-radius: 8px;
+        border: 1px solid #edf2f7;
+        cursor: grab;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+    }
+    .course-item:hover { border-color: #0d6efd; }
+    .course-item i { color: #cbd5e0; }
+
+    .form-section-title {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #0d6efd;
+        letter-spacing: 1.2px;
+        margin-bottom: 1.5rem;
+        margin-top: 2rem;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 5px;
+    }
+
+    .form-label { font-weight: 600; font-size: 0.85rem; color: #4a5568; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Add New Staff User</h3>
+<div class="container-fluid py-5 px-lg-5">
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card main-card shadow-lg p-4 p-md-5 bg-white">
+                <div class="mb-4">
+                    <h2 class="fw-bold">Staff Onboarding</h2>
+                    <p class="text-muted small">Complete the profile below to create a new team member.</p>
                 </div>
-                <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
 
-                    <form method="POST" enctype="multipart/form-data">
-                        {{ form.hidden_tag() }}
+                <form id="staffForm" method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.first_name.label(class_="form-label") }}
-                                {{ form.first_name(class_="form-control", placeholder="First name") }}
-                                {% for err in form.first_name.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                {{ form.last_name.label(class_="form-label") }}
-                                {{ form.last_name(class_="form-control", placeholder="Last name") }}
-                                {% for err in form.last_name.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
+                    <div class="form-section-title mt-0">1. Personal Identity</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            {{ form.first_name.label(class="form-label") }}
+                            {{ form.first_name(class="form-control rounded-3", placeholder="First Name") }}
                         </div>
-
-                        <div class="mb-3">
-                            {{ form.username.label(class_="form-label") }}
-                            {{ form.username(class_="form-control", placeholder="Enter username") }}
-                            {% for err in form.username.errors %}
-                                <div class="invalid-feedback d-block">{{ err }}</div>
-                            {% endfor %}
+                        <div class="col-md-6">
+                            {{ form.last_name.label(class="form-label") }}
+                            {{ form.last_name(class="form-control rounded-3", placeholder="Last Name") }}
                         </div>
-
-                        <div class="mb-3">
-                            {{ form.email.label(class_="form-label") }}
-                            {{ form.email(class_="form-control", placeholder="Enter email") }}
-                            {% for err in form.email.errors %}
-                                <div class="invalid-feedback d-block">{{ err }}</div>
-                            {% endfor %}
+                        <div class="col-md-6">
+                            {{ form.gender.label(class="form-label") }}
+                            {{ form.gender(class="form-select rounded-3") }}
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.password.label(class_="form-label") }}
-                                {{ form.password(class_="form-control", placeholder="Password") }}
-                                {% for err in form.password.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                {{ form.password_confirm.label(class_="form-label") }}
-                                {{ form.password_confirm(class_="form-control", placeholder="Confirm password") }}
-                                {% for err in form.password_confirm.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
+                        <div class="col-md-6">
+                            {{ form.phone_number.label(class="form-label") }}
+                            {{ form.phone_number(class="form-control rounded-3", placeholder="+00 000 000 000") }}
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            {{ form.role.label(class_="form-label") }}
-                            {{ form.role(class_="form-select") }}
-                            {% for err in form.role.errors %}
-                                <div class="invalid-feedback d-block">{{ err }}</div>
-                            {% endfor %}
+                    <div class="form-section-title">2. Account & Security</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control rounded-3") }}
                         </div>
+                        <div class="col-md-6">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control rounded-3") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control rounded-3") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.password_confirm.label(class="form-label") }}
+                            {{ form.password_confirm(class="form-control rounded-3") }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">System Access Level</label>
+                            {{ form.role(class="form-select rounded-3 bg-light") }}
+                        </div>
+                    </div>
 
-                        <div class="mb-3">
-                            {{ form.phone_number.label(class_="form-label") }}
-                            {{ form.phone_number(class_="form-control", placeholder="Phone (optional)") }}
-                            {% for err in form.phone_number.errors %}
-                                <div class="invalid-feedback d-block">{{ err }}</div>
-                            {% endfor %}
-                        </div>
+                    <div class="form-section-title">3. Professional Details</div>
+                    <div class="mb-4">
+                        {{ form.education_qualification.label(class="form-label") }}
+                        {{ form.education_qualification(class="form-control rounded-3", placeholder="e.g. Master of Computer Science") }}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.address.label(class="form-label") }}
+                        {{ form.address(class="form-control rounded-3", rows="2") }}
+                    </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.photo.label(class_="form-label") }}
-                                {{ form.photo(class_="form-control") }}
-                                {% for err in form.photo.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                {{ form.resume.label(class_="form-label") }}
-                                {{ form.resume(class_="form-control") }}
-                                {% for err in form.resume.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
+                    <div class="form-section-title">4. Media & Documents</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.photo.label(class="form-label") }}
+                            {{ form.photo(class="form-control rounded-3") }}
                         </div>
+                        <div class="col-md-6">
+                            {{ form.resume.label(class="form-label") }}
+                            {{ form.resume(class="form-control rounded-3") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-                        <div class="mb-3">
-                            {{ form.address.label(class_="form-label") }}
-                            {{ form.address(class_="form-control", rows="3", placeholder="Address (optional)") }}
-                            {% for err in form.address.errors %}
-                                <div class="invalid-feedback d-block">{{ err }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                {{ form.gender.label(class_="form-label") }}
-                                {{ form.gender(class_="form-select") }}
-                                {% for err in form.gender.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                {{ form.education_qualification.label(class_="form-label") }}
-                                {{ form.education_qualification(class_="form-control", placeholder="e.g. B.Sc, M.A...") }}
-                                {% for err in form.education_qualification.errors %}
-                                    <div class="invalid-feedback d-block">{{ err }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <a href="{{ url_for('admin.new_staff_assign_course') }}" class="btn btn-sm btn-outline-primary">Assign Courses</a>
-                        </div>
-
-                        <div class="d-grid">
-                            {{ form.submit(class_="btn btn-primary") }}
-                        </div>
-                    </form>
+        <div class="col-lg-6 sticky-column">
+            <div class="card main-card shadow-lg p-4 p-md-5 bg-white h-100 d-flex flex-column">
+                <div class="mb-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0">Course Access</h4>
+                        <p class="text-muted small mb-0">Drag courses to assign them instantly.</p>
+                    </div>
+                    <div id="assignCount" class="badge bg-primary rounded-pill px-3 py-2">0 Linked</div>
                 </div>
-                <div class="card-footer text-center">
-                    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">Back to Dashboard</a>
+
+                <div class="row g-3 flex-grow-1 overflow-hidden">
+                    <div class="col-6 d-flex flex-column">
+                        <small class="fw-bold text-uppercase text-muted mb-2" style="font-size: 0.7rem;">Library</small>
+                        <ul id="unassigned" class="course-column list-unstyled p-2 flex-grow-1" ondrop="drop(event)" ondragover="allowDrop(event)">
+                            {% for course in unassigned %}
+                                <li class="course-item shadow-sm" draggable="true" ondragstart="drag(event)" data-id="{{ course.id }}">
+                                    <i class="bi bi-grip-vertical"></i>
+                                    <span>{{ course.title }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="col-6 d-flex flex-column">
+                        <small class="fw-bold text-uppercase text-primary mb-2" style="font-size: 0.7rem;">Selected</small>
+                        <ul id="assigned" class="course-column list-unstyled p-2 border-primary border-opacity-25 flex-grow-1" ondrop="drop(event)" ondragover="allowDrop(event)">
+                            </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-top">
+                    <button type="button" 
+                            class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow py-3" 
+                            onclick="submitFullProfile(event, this)"> Finalize Staff Onboarding
+                    </button>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('admin.admin_dashboard') }}" class="text-muted small text-decoration-none">Cancel and Return</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// --- DRAG AND DROP ---
+function allowDrop(ev) { ev.preventDefault(); }
+function drag(ev) { ev.dataTransfer.setData("text", ev.target.dataset.id); }
+
+function drop(ev) {
+    ev.preventDefault();
+    let courseId = ev.dataTransfer.getData("text");
+    let item = document.querySelector(`[data-id='${courseId}']`);
+    let targetUl = ev.target.closest('ul');
+    if (targetUl) {
+        targetUl.appendChild(item);
+        updateUI();
+    }
+}
+
+function updateUI() {
+    let count = document.querySelectorAll("#assigned .course-item").length;
+    document.getElementById('assignCount').innerText = `${count} Linked`;
+}
+
+function submitFullProfile(event, btn) { // Accept 'btn' as an argument
+    console.log("Button clicked!");
+    if (event) event.preventDefault();
+
+    const formElement = document.getElementById('staffForm');
+    
+    // 1. Validation Check
+    if (!formElement.checkValidity()) {
+        console.log("Form validation failed.");
+        formElement.reportValidity();
+        return; 
+    }
+
+    // 2. Collect Course IDs
+    let assignedList = document.querySelectorAll("#assigned .course-item");
+    let assignedIds = Array.from(assignedList).map(el => el.dataset.id);
+
+    // 3. Prepare FormData
+    let formData = new FormData(formElement);
+    formData.append('assigned_courses', JSON.stringify(assignedIds));
+
+    // 4. UI Feedback (Now using the 'btn' we passed in)
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+    btn.disabled = true;
+
+    // 5. Submit
+    fetch("{{ url_for('admin.add_staff') }}", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else if (response.ok) {
+            window.location.href = "{{ url_for('admin.admin_dashboard') }}";
+        } else {
+            return response.text().then(text => { throw new Error(text) });
+        }
+    })
+    .catch(err => {
+        console.error("Submission Error:", err);
+        alert("Could not save staff: " + err.message);
+        // Reset button if there's an error
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+</script>
 {% endblock %}

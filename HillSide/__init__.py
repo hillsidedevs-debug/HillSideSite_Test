@@ -54,7 +54,7 @@ def create_app(config_object=None):
                 'https://www.google.com',
                 'https://cdn.jsdelivr.net'
             ],
-            'img-src': ["'self'", 'data:']
+            'img-src': ["'self'", 'data:', 'https://cdn-icons-png.flaticon.com']
     }
 
     # Initialize Talisman

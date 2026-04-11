@@ -1,3 +1,4 @@
+import json
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from HillSide.forms.register_form import RegisterForm
@@ -314,23 +315,121 @@ def delete_user(user_id):
     flash('🗑️ User deleted successfully!', 'success')
     return redirect(url_for('admin.manage_users'))
 
+# @admin_bp.route('/add-staff', methods=['GET', 'POST'])
+# @login_required
+# @admin_required
+# def add_staff():
+#     form = AddStaffForm()
+
+#     if form.validate_on_submit():
+
+#         # basic uniqueness checks
+#         if User.query.filter_by(username=form.username.data).first() or User.query.filter_by(email=form.email.data).first():
+#             flash("Username or email already exists.", "error")
+#             return render_template('add_staff.html', form=form)
+
+#         # Hash & decode password
+#         hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
+
+#         # create user instance
+#         user = User(
+#             first_name=form.first_name.data,
+#             last_name=form.last_name.data,
+#             username=form.username.data,
+#             email=form.email.data,
+#             password=hashed_password,
+#             phone_number=form.phone_number.data or None,
+#             address=form.address.data or None,
+#             education_qualification=form.education_qualification.data or None,
+#         )
+
+#         # map role safely (accept either value or name)
+#         role_input = form.role.data
+#         try:
+#             # try by value first
+#             user.role = RoleEnum(role_input)
+#         except Exception:
+#             try:
+#                 user.role = RoleEnum[role_input]
+#             except Exception:
+#                 # fallback to default
+#                 user.role = RoleEnum.STAFF
+
+#         # map gender safely (accept either value or name)
+#         gender_input = (form.gender.data or "").strip()
+#         if gender_input:
+#             try:
+#                 user.gender = GenderEnum(gender_input)      # by value
+#             except Exception:
+#                 try:
+#                     user.gender = GenderEnum[gender_input]  # by name (may fail)
+#                 except Exception:
+#                     user.gender = None
+#         else:
+#             user.gender = None
+
+#         # Handle file uploads
+#         photos_folder = current_app.config.get("UPLOAD_FOLDER_PHOTOS", "static/uploads/photos")
+#         resumes_folder = current_app.config.get("UPLOAD_FOLDER_RESUMES", "static/uploads/resumes")
+#         os.makedirs(photos_folder, exist_ok=True)
+#         os.makedirs(resumes_folder, exist_ok=True)
+
+#         if form.photo.data:
+#             photo_file = form.photo.data
+#             photo_filename = secure_filename(photo_file.filename)
+#             photo_path = os.path.join(photos_folder, photo_filename)
+#             photo_file.save(photo_path)
+#             # store a relative/path or filename depending on your preference
+#             user.photo = photo_filename
+
+#         if form.resume.data:
+#             resume_file = form.resume.data
+#             resume_filename = secure_filename(resume_file.filename)
+#             resume_path = os.path.join(resumes_folder, resume_filename)
+#             resume_file.save(resume_path)
+#             user.resume = resume_filename
+
+#         # persist user and any enrollments
+#         db.session.add(user)
+#         db.session.flush()  # to populate user.id
+
+#         selected_course_ids = session.pop('assigned_course_ids', [])
+#         for course_id in selected_course_ids:
+#             try:
+#                 # optional: validate course_id exists
+#                 course = Course.query.get(int(course_id))
+#                 if course:
+#                     enrollment = Enrollment(user_id=user.id, course_id=course.id)
+#                     db.session.add(enrollment)
+#             except Exception:
+#                 continue
+
+#         db.session.commit()
+#         flash("Staff user created successfully!", "success")
+#         return redirect(url_for('admin.admin_dashboard'))
+
+#     return render_template('add_staff.html', form=form)
+
+
 @admin_bp.route('/add-staff', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def add_staff():
     form = AddStaffForm()
+    # We still need the list of courses for the drag-and-drop UI
+    unassigned_courses = Course.query.all()
 
     if form.validate_on_submit():
-
-        # basic uniqueness checks
-        if User.query.filter_by(username=form.username.data).first() or User.query.filter_by(email=form.email.data).first():
+        # 1. Uniqueness Checks
+        if User.query.filter_by(username=form.username.data).first() or \
+           User.query.filter_by(email=form.email.data).first():
             flash("Username or email already exists.", "error")
-            return render_template('add_staff.html', form=form)
+            return render_template('add_staff.html', form=form, unassigned=unassigned_courses)
 
-        # Hash & decode password
+        # 2. Hash Password
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
 
-        # create user instance
+        # 3. Create User Instance
         user = User(
             first_name=form.first_name.data,
             last_name=form.last_name.data,
@@ -342,72 +441,54 @@ def add_staff():
             education_qualification=form.education_qualification.data or None,
         )
 
-        # map role safely (accept either value or name)
-        role_input = form.role.data
+        # 4. Map Enums (Role & Gender)
         try:
-            # try by value first
-            user.role = RoleEnum(role_input)
-        except Exception:
-            try:
-                user.role = RoleEnum[role_input]
-            except Exception:
-                # fallback to default
-                user.role = RoleEnum.STAFF
+            user.role = RoleEnum(form.role.data)
+        except:
+            user.role = RoleEnum.STAFF
 
-        # map gender safely (accept either value or name)
         gender_input = (form.gender.data or "").strip()
         if gender_input:
             try:
-                user.gender = GenderEnum(gender_input)      # by value
-            except Exception:
-                try:
-                    user.gender = GenderEnum[gender_input]  # by name (may fail)
-                except Exception:
-                    user.gender = None
-        else:
-            user.gender = None
+                user.gender = GenderEnum(gender_input)
+            except:
+                user.gender = None
 
-        # Handle file uploads
-        photos_folder = current_app.config.get("UPLOAD_FOLDER_PHOTOS", "static/uploads/photos")
-        resumes_folder = current_app.config.get("UPLOAD_FOLDER_RESUMES", "static/uploads/resumes")
-        os.makedirs(photos_folder, exist_ok=True)
-        os.makedirs(resumes_folder, exist_ok=True)
-
+        # 5. Handle File Uploads
         if form.photo.data:
-            photo_file = form.photo.data
-            photo_filename = secure_filename(photo_file.filename)
-            photo_path = os.path.join(photos_folder, photo_filename)
-            photo_file.save(photo_path)
-            # store a relative/path or filename depending on your preference
+            photo_filename = secure_filename(form.photo.data.filename)
+            form.photo.data.save(os.path.join(current_app.config['UPLOAD_FOLDER_PHOTOS'], photo_filename))
             user.photo = photo_filename
 
         if form.resume.data:
-            resume_file = form.resume.data
-            resume_filename = secure_filename(resume_file.filename)
-            resume_path = os.path.join(resumes_folder, resume_filename)
-            resume_file.save(resume_path)
+            resume_filename = secure_filename(form.resume.data.filename)
+            form.resume.data.save(os.path.join(current_app.config['UPLOAD_FOLDER_RESUMES'], resume_filename))
             user.resume = resume_filename
 
-        # persist user and any enrollments
-        db.session.add(user)
-        db.session.flush()  # to populate user.id
+        # 6. Save User and Handle Course Assignments
+        try:
+            db.session.add(user)
+            db.session.flush()  # Gets the user.id before commit
 
-        selected_course_ids = session.pop('assigned_course_ids', [])
-        for course_id in selected_course_ids:
-            try:
-                # optional: validate course_id exists
-                course = Course.query.get(int(course_id))
-                if course:
-                    enrollment = Enrollment(user_id=user.id, course_id=course.id)
+            # Retrieve the course IDs sent from our JavaScript Drag-and-Drop
+            assigned_json = request.form.get('assigned_courses')
+            if assigned_json:
+                course_ids = json.loads(assigned_json)
+                for c_id in course_ids:
+                    # Create the enrollment/linkage
+                    enrollment = Enrollment(user_id=user.id, course_id=int(c_id))
                     db.session.add(enrollment)
-            except Exception:
-                continue
 
-        db.session.commit()
-        flash("Staff user created successfully!", "success")
-        return redirect(url_for('admin.admin_dashboard'))
+            db.session.commit()
+            flash("Staff user created and courses assigned successfully!", "success")
+            return redirect(url_for('admin.admin_dashboard'))
 
-    return render_template('add_staff.html', form=form)
+        except Exception as e:
+            db.session.rollback()
+            flash(f"An error occurred: {str(e)}", "error")
+
+    # For GET requests, show the combined form
+    return render_template('add_staff.html', form=form, unassigned=unassigned_courses)
 
 @admin_bp.route('/staff/<int:staff_id>/courses', methods=['GET', 'POST'])
 @login_required
