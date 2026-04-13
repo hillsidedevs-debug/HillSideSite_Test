@@ -27,34 +27,83 @@ def create_app(config_object=None):
 
     env = os.getenv("FLASK_ENV", "development")
 
+    # csp = {
+    #         'default-src': "'self'",
+    #         'style-src': [
+    #             "'self'",
+    #             'https://cdn.jsdelivr.net',
+    #             'https://fonts.googleapis.com',
+    #             "'unsafe-inline'"
+    #         ],
+    #         'script-src': [
+    #             "'self'",
+    #             'https://cdn.jsdelivr.net',
+    #             'https://code.jquery.com',
+    #             'https://www.google.com',
+    #             'https://www.gstatic.com',
+    #             "'unsafe-inline'"
+    #         ],
+    #         'frame-src': [  # <--- ADD THIS SECTION
+    #             "'self'",
+    #             'https://www.google.com',
+    #             'https://recaptcha.google.com'
+    #         ],
+    #         'font-src': [
+    #             "'self'",
+    #             'https://fonts.gstatic.com',
+    #             'https://www.google.com',
+    #             'https://cdn.jsdelivr.net'
+    #         ],
+    #         'img-src': ["'self'", 'data:', 'https://cdn-icons-png.flaticon.com']
+    # }
+
     csp = {
-            'default-src': "'self'",
-            'style-src': [
-                "'self'",
-                'https://cdn.jsdelivr.net',
-                'https://fonts.googleapis.com',
-                "'unsafe-inline'"
-            ],
-            'script-src': [
-                "'self'",
-                'https://cdn.jsdelivr.net',
-                'https://code.jquery.com',
-                'https://www.google.com',
-                'https://www.gstatic.com',
-                "'unsafe-inline'"
-            ],
-            'frame-src': [  # <--- ADD THIS SECTION
-                "'self'",
-                'https://www.google.com',
-                'https://recaptcha.google.com'
-            ],
-            'font-src': [
-                "'self'",
-                'https://fonts.gstatic.com',
-                'https://www.google.com',
-                'https://cdn.jsdelivr.net'
-            ],
-            'img-src': ["'self'", 'data:', 'https://cdn-icons-png.flaticon.com']
+        'default-src': "'self'",
+        'style-src': [
+            "'self'",
+            'https://cdn.jsdelivr.net',
+            'https://fonts.googleapis.com',
+            "'unsafe-inline'"
+        ],
+        'script-src': [
+            "'self'",
+            'https://cdn.jsdelivr.net',
+            'https://code.jquery.com',
+            'https://www.google.com',
+            'https://www.gstatic.com',
+            'https://ajax.googleapis.com',      # Maps component library
+            'https://maps.googleapis.com',
+            "'wasm-unsafe-eval'",
+            "'unsafe-inline'"
+        ],
+        'frame-src': [
+            "'self'",
+            'https://www.google.com',
+            'https://recaptcha.google.com'
+        ],
+        'font-src': [
+            "'self'",
+            'https://fonts.gstatic.com',
+            'https://www.google.com',
+            'https://cdn.jsdelivr.net'
+        ],
+        'img-src': [
+            "'self'",
+            'data:',
+            'https://cdn-icons-png.flaticon.com',
+            'https://maps.googleapis.com',      # Map tiles
+            'https://maps.gstatic.com',         # Map icons/markers
+            'https://streetviewpixels-pa.googleapis.com',  # Street view
+        ],
+        'connect-src': [                        # NEW — API calls
+            "'self'",
+            'https://maps.googleapis.com',
+            'https://places.googleapis.com',
+        ],
+        'worker-src': [                         # NEW — Maps uses web workers
+            "'self'",
+            'blob:',
+        ],
     }
 
     # Initialize Talisman

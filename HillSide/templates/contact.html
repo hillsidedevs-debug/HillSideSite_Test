@@ -13,11 +13,11 @@
 <section class="py-6 bg-light" style="padding-top: 5rem; padding-bottom: 8rem;">
   <div class="container">
     <div class="row g-5 justify-content-center">
-      
+
       <div class="col-lg-4">
         <div class="mb-5">
           <h3 class="fw-bold mb-4">Contact Information</h3>
-          
+
           <div class="d-flex mb-4">
             <div class="icon-box bg-primary bg-opacity-10 text-primary me-3 flex-shrink-0" style="width: 50px; height: 50px;">
               <i class="bi bi-geo-alt fs-5"></i>
@@ -49,17 +49,21 @@
           </div>
         </div>
 
-        <div class="p-4 bg-white rounded-4 shadow-sm border-start border-primary border-4">
-            <p class="fst-italic text-muted small mb-0">
-                "Our team typically responds within 2 business hours for project inquiries."
-            </p>
+        <!-- MAP CARD -->
+        <div class="rounded-4 overflow-hidden shadow-sm border" style="height: 280px;">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1239.238924844658!2d76.34003262015952!3d31.40548578041768!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391acf554bb63357%3A0x23256ffa6aef4e64!2sHillside%20Software!5e0!3m2!1sen!2sin!4v1776082022091!5m2!1sen!2sin"
+            width="100%" height="100%" style="border:0; display:block;"
+            allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
         </div>
+
       </div>
 
       <div class="col-lg-7">
         <div class="card border-0 shadow-lg rounded-4 p-4 p-md-5 bg-white">
           <h3 class="fw-bold mb-4">Send us a message</h3>
-          
+
           <form method="POST" action="{{ url_for('main.contact') }}">
             {{ form.hidden_tag() }}
 
@@ -90,12 +94,12 @@
             </div>
 
             <div class="mb-4">
-                <div class="bg-light p-3 rounded-3 d-inline-block shadow-inner">
-                    {{ form.recaptcha }}
-                </div>
-                {% for error in form.recaptcha.errors %}
-                  <div class="text-danger x-small mt-1">{{ error }}</div>
-                {% endfor %}
+              <div class="bg-light p-3 rounded-3 d-inline-block shadow-inner">
+                {{ form.recaptcha }}
+              </div>
+              {% for error in form.recaptcha.errors %}
+                <div class="text-danger x-small mt-1">{{ error }}</div>
+              {% endfor %}
             </div>
 
             <div class="d-grid">
