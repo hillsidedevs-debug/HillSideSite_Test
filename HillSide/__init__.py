@@ -4,6 +4,7 @@ load_dotenv()
 
 from flask import Flask, app
 from flask_talisman import Talisman
+from werkzeug.middleware.proxy_fix import ProxyFix
 from HillSide.extensions import db, mail, bcrypt, login_manager, migrate, csrf, limiter
 from HillSide.config import DevelopmentConfig, ProductionConfig, TestingConfig
 from HillSide.routes import register_blueprints
@@ -26,36 +27,6 @@ def create_app(config_object=None):
 
 
     env = os.getenv("FLASK_ENV", "development")
-
-    # csp = {
-    #         'default-src': "'self'",
-    #         'style-src': [
-    #             "'self'",
-    #             'https://cdn.jsdelivr.net',
-    #             'https://fonts.googleapis.com',
-    #             "'unsafe-inline'"
-    #         ],
-    #         'script-src': [
-    #             "'self'",
-    #             'https://cdn.jsdelivr.net',
-    #             'https://code.jquery.com',
-    #             'https://www.google.com',
-    #             'https://www.gstatic.com',
-    #             "'unsafe-inline'"
-    #         ],
-    #         'frame-src': [  # <--- ADD THIS SECTION
-    #             "'self'",
-    #             'https://www.google.com',
-    #             'https://recaptcha.google.com'
-    #         ],
-    #         'font-src': [
-    #             "'self'",
-    #             'https://fonts.gstatic.com',
-    #             'https://www.google.com',
-    #             'https://cdn.jsdelivr.net'
-    #         ],
-    #         'img-src': ["'self'", 'data:', 'https://cdn-icons-png.flaticon.com']
-    # }
 
     csp = {
         'default-src': "'self'",
@@ -106,18 +77,15 @@ def create_app(config_object=None):
         ],
     }
 
-    # Initialize Talisman
-    # force_https=False in dev ensures you don't get redirect loops on localhost
     Talisman(
-        app, 
+        app,
         content_security_policy=csp,
-        force_https=(True)
+        force_https=(env == "production"),
     )
 
     if env == "production":
         app.config.from_object(ProductionConfig)
-        # Force HTTPS and set strict CSP
-        #Talisman(app, force_https=True)
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
         print("Running in Production mode")
     elif env == "development":
         app.config.from_object(DevelopmentConfig)
