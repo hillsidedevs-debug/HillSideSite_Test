@@ -43,7 +43,7 @@ def get_serializer():
 # --------------------
 
 @auth_bp.route("/register", methods=["GET", "POST"])
-@limiter.limit("3 per minute")
+@limiter.limit("3 per minute", methods=["POST"])
 def register():
     form = RegisterForm()
 
@@ -122,13 +122,12 @@ def register():
 # --------------------
 
 @auth_bp.route("/login", methods=["GET", "POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("5 per minute", methods=["POST"])
 def login():
     form = LoginForm()
 
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        print(f"Login attempt for email: {form.email.data}, User found: {bool(user)}")
         if not user or not bcrypt.check_password_hash(
             user.password, form.password.data
         ):
@@ -137,7 +136,6 @@ def login():
 
         if not user.is_verified:
             flash("Please verify your email before logging in.", "warning")
-            print
             return render_template(
                 "login.html", form=form,
                 show_resend=True, email=user.email
@@ -183,7 +181,6 @@ def logout():
 # --------------------
 
 @auth_bp.route("/profile", methods=["POST"])
-@limiter.limit("5 per minute")
 @login_required
 def update_profile():
     form = UpdateProfileForm()
@@ -261,9 +258,8 @@ def update_profile():
 # --------------------
 
 @auth_bp.route("/forgot_password", methods=["GET", "POST"])
-@limiter.limit("3 per minute")
+@limiter.limit("3 per minute", methods=["POST"])
 def forgot_password():
-    print("in forgot_password")
     form = ForgotPasswordForm()
 
     if form.validate_on_submit():
@@ -282,7 +278,7 @@ def forgot_password():
 # --------------------
 
 @auth_bp.route("/reset_password/<token>", methods=["GET", "POST"])
-@limiter.limit("10 per hour")
+@limiter.limit("10 per hour", methods=["POST"])
 def reset_password(token):
     user = User.verify_reset_token(token)
 
@@ -309,7 +305,6 @@ def reset_password(token):
 # --------------------
 
 @auth_bp.route("/verify/<token>")
-@limiter.limit("10 per hour")
 def verify_email(token):
     try:
         email = get_serializer().loads(

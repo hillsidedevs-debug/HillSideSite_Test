@@ -10,7 +10,7 @@ from HillSide.models import User, Enrollment, Course, RoleEnum, GenderEnum, Revi
 import os
 from flask import current_app
 from werkzeug.utils import secure_filename
-from HillSide.utils import admin_required
+from HillSide.utils import admin_required, generate_secure_filename, is_valid_file
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 
@@ -54,9 +54,6 @@ def manage_courses():
 @admin_bp.route('/manage_users')
 @login_required
 @admin_required
-# def manage_users():
-#     users = User.query.filter_by(role=RoleEnum.USER).all()
-#     return render_template('admin_manage_users.html', users=users)
 def manage_users():
     page = request.args.get('page', 1, type=int)
     query = request.args.get('q', '').strip()
@@ -146,35 +143,10 @@ def remove_enrollment(enrollment_id):
     
     db.session.delete(enrollment)
     db.session.commit()
-    
+
     flash(f'🧹 {user_username} has been removed from {course_title}.', 'info')
     return redirect(request.referrer or url_for('admin.manage_users'))
-# def remove_enrollment(enrollment_id):
-#     enrollment = Enrollment.query.get_or_404(enrollment_id)
-#     db.session.delete(enrollment)
-#     db.session.commit()
-#     flash(f'🧹 {enrollment.user.username} has been removed from {enrollment.course.title}.', 'info')
-#     return redirect(url_for('admin.course_details', course_id=enrollment.course_id))
 
-
-
-# @admin_bp.route('/course/edit/<int:course_id>', methods=['GET', 'POST'])
-# @login_required
-# @admin_required
-# def edit_course(course_id):
-#     course = Course.query.get_or_404(course_id)
-
-#     if request.method == 'POST':
-#         course.title = request.form['title']
-#         course.description = request.form['description']
-#         course.start_date = datetime.strptime(request.form['start_date'], '%Y-%m-%d')
-#         course.duration_weeks = request.form['duration']
-#         course.total_seats = int(request.form['total_seats'])
-#         db.session.commit()
-#         flash('✅ Course updated successfully!', 'success')
-#         return redirect(url_for('admin.manage_courses'))
-
-#     return render_template('edit_course.html', course=course)
 
 import traceback
 import sys
@@ -257,7 +229,7 @@ def edit_course(course_id):
 
         return render_template('edit_course.html', form=form, course=course)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # Force immediate visibility + clearer separation
         print("═" * 70, file=sys.stderr, flush=True)
         print(f"ERROR in edit_course (course_id={course_id}): {e}", file=sys.stderr, flush=True)
@@ -267,20 +239,6 @@ def edit_course(course_id):
         # Still re-raise so you get proper 500 response
         raise
 
-
-# @admin_bp.route('/staff/edit/<int:staff_id>', methods=['GET', 'POST'])
-# @login_required
-# @admin_required
-# def edit_staff(staff_id):
-#     user = User.query.get_or_404(staff_id)
-
-#     form = AddStaffForm()
-#     if(form.validate_on_submit()):
-#         user.username = form.username.data
-#         user.email = form.email.data
-#         user.password = bcrypt.generate_password_hash(form.password.data)
-#         return redirect(url_for('admin.admin_manage_staff'))
-#     return render_template('edit_staff.html', form=form)
 
 @admin_bp.route('/course/delete/<int:course_id>', methods=['POST'])
 @login_required
@@ -315,108 +273,12 @@ def delete_user(user_id):
     flash('🗑️ User deleted successfully!', 'success')
     return redirect(url_for('admin.manage_users'))
 
-# @admin_bp.route('/add-staff', methods=['GET', 'POST'])
-# @login_required
-# @admin_required
-# def add_staff():
-#     form = AddStaffForm()
-
-#     if form.validate_on_submit():
-
-#         # basic uniqueness checks
-#         if User.query.filter_by(username=form.username.data).first() or User.query.filter_by(email=form.email.data).first():
-#             flash("Username or email already exists.", "error")
-#             return render_template('add_staff.html', form=form)
-
-#         # Hash & decode password
-#         hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
-
-#         # create user instance
-#         user = User(
-#             first_name=form.first_name.data,
-#             last_name=form.last_name.data,
-#             username=form.username.data,
-#             email=form.email.data,
-#             password=hashed_password,
-#             phone_number=form.phone_number.data or None,
-#             address=form.address.data or None,
-#             education_qualification=form.education_qualification.data or None,
-#         )
-
-#         # map role safely (accept either value or name)
-#         role_input = form.role.data
-#         try:
-#             # try by value first
-#             user.role = RoleEnum(role_input)
-#         except Exception:
-#             try:
-#                 user.role = RoleEnum[role_input]
-#             except Exception:
-#                 # fallback to default
-#                 user.role = RoleEnum.STAFF
-
-#         # map gender safely (accept either value or name)
-#         gender_input = (form.gender.data or "").strip()
-#         if gender_input:
-#             try:
-#                 user.gender = GenderEnum(gender_input)      # by value
-#             except Exception:
-#                 try:
-#                     user.gender = GenderEnum[gender_input]  # by name (may fail)
-#                 except Exception:
-#                     user.gender = None
-#         else:
-#             user.gender = None
-
-#         # Handle file uploads
-#         photos_folder = current_app.config.get("UPLOAD_FOLDER_PHOTOS", "static/uploads/photos")
-#         resumes_folder = current_app.config.get("UPLOAD_FOLDER_RESUMES", "static/uploads/resumes")
-#         os.makedirs(photos_folder, exist_ok=True)
-#         os.makedirs(resumes_folder, exist_ok=True)
-
-#         if form.photo.data:
-#             photo_file = form.photo.data
-#             photo_filename = secure_filename(photo_file.filename)
-#             photo_path = os.path.join(photos_folder, photo_filename)
-#             photo_file.save(photo_path)
-#             # store a relative/path or filename depending on your preference
-#             user.photo = photo_filename
-
-#         if form.resume.data:
-#             resume_file = form.resume.data
-#             resume_filename = secure_filename(resume_file.filename)
-#             resume_path = os.path.join(resumes_folder, resume_filename)
-#             resume_file.save(resume_path)
-#             user.resume = resume_filename
-
-#         # persist user and any enrollments
-#         db.session.add(user)
-#         db.session.flush()  # to populate user.id
-
-#         selected_course_ids = session.pop('assigned_course_ids', [])
-#         for course_id in selected_course_ids:
-#             try:
-#                 # optional: validate course_id exists
-#                 course = Course.query.get(int(course_id))
-#                 if course:
-#                     enrollment = Enrollment(user_id=user.id, course_id=course.id)
-#                     db.session.add(enrollment)
-#             except Exception:
-#                 continue
-
-#         db.session.commit()
-#         flash("Staff user created successfully!", "success")
-#         return redirect(url_for('admin.admin_dashboard'))
-
-#     return render_template('add_staff.html', form=form)
-
 
 @admin_bp.route('/add-staff', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def add_staff():
     form = AddStaffForm()
-    # We still need the list of courses for the drag-and-drop UI
     unassigned_courses = Course.query.all()
 
     if form.validate_on_submit():
@@ -444,25 +306,31 @@ def add_staff():
         # 4. Map Enums (Role & Gender)
         try:
             user.role = RoleEnum(form.role.data)
-        except:
+        except Exception:
             user.role = RoleEnum.STAFF
 
         gender_input = (form.gender.data or "").strip()
         if gender_input:
             try:
                 user.gender = GenderEnum(gender_input)
-            except:
+            except Exception:
                 user.gender = None
 
         # 5. Handle File Uploads
         if form.photo.data:
-            photo_filename = secure_filename(form.photo.data.filename)
-            form.photo.data.save(os.path.join(current_app.config['UPLOAD_FOLDER_PHOTOS'], photo_filename))
+            if not is_valid_file(form.photo.data, 'image'):
+                flash("Invalid image. Only JPG and PNG are allowed.", "danger")
+                return render_template('add_staff.html', form=form, unassigned=unassigned_courses)
+            photo_filename = generate_secure_filename("photo", "jpg")
+            form.photo.data.save(os.path.join(current_app.config['UPLOAD_PHOTO_FOLDER'], photo_filename))
             user.photo = photo_filename
 
         if form.resume.data:
-            resume_filename = secure_filename(form.resume.data.filename)
-            form.resume.data.save(os.path.join(current_app.config['UPLOAD_FOLDER_RESUMES'], resume_filename))
+            if not is_valid_file(form.resume.data, 'pdf'):
+                flash("Invalid resume. Only PDF files are allowed.", "danger")
+                return render_template('add_staff.html', form=form, unassigned=unassigned_courses)
+            resume_filename = generate_secure_filename("resume", "pdf")
+            form.resume.data.save(os.path.join(current_app.config['UPLOAD_RESUME_FOLDER'], resume_filename))
             user.resume = resume_filename
 
         # 6. Save User and Handle Course Assignments
@@ -555,16 +423,22 @@ def edit_user(user_id):
         if 'photo' in request.files:
             file = request.files['photo']
             if file and file.filename:
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(current_app.root_path, "static/uploads/photos", filename))
+                if not is_valid_file(file, 'image'):
+                    flash("Invalid image. Only JPG and PNG are allowed.", "danger")
+                    return redirect(url_for('admin.user_details', user_id=user.id))
+                filename = generate_secure_filename("photo", "jpg")
+                file.save(os.path.join(current_app.config['UPLOAD_PHOTO_FOLDER'], filename))
                 user.photo = filename
 
         # Resume upload
         if 'resume' in request.files:
             file = request.files['resume']
-            if file and allowed_file(file.filename, {'pdf'}):
-                filename = secure_filename(f"resume_{user.id}.pdf")
-                file.save(os.path.join(current_app.root_path, "static/uploads/resumes", filename))
+            if file and file.filename:
+                if not is_valid_file(file, 'pdf'):
+                    flash("Invalid resume. Only PDF files are allowed.", "danger")
+                    return redirect(url_for('admin.user_details', user_id=user.id))
+                filename = generate_secure_filename("resume", "pdf")
+                file.save(os.path.join(current_app.config['UPLOAD_RESUME_FOLDER'], filename))
                 user.resume = filename
 
         db.session.commit()
@@ -639,47 +513,3 @@ def delete_review(review_id):
     
     flash(f"Review by {username} permanently deleted.", "danger")
     return redirect(url_for('admin.reviews_list'))
-@admin_bp.route("/users")
-def list_users():
-    from HillSide.models import User
-
-    users = User.query.all()
-
-    html = """
-    <h2>User List</h2>
-    <table border="1" cellpadding="6" cellspacing="0">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Verified</th>
-                <th>Role</th>
-                <th>Gender</th>
-                <th>Created</th>
-                <th>Enrollments</th>
-            </tr>
-        </thead>
-        <tbody>
-    """
-
-    for u in users:
-        html += f"""
-        <tr>
-            <td>{u.id}</td>
-            <td>{u.username}</td>
-            <td>{u.email}</td>
-            <td>{'✔️' if u.is_verified else '❌'}</td>
-            <td>{u.role.value}</td>
-            <td>{u.gender.value if u.gender else ''}</td>
-            <td>{u.created_at.strftime('%Y-%m-%d')}</td>
-            <td>{len(u.enrollments)}</td>
-        </tr>
-        """
-
-    html += """
-        </tbody>
-    </table>
-    """
-
-    return html

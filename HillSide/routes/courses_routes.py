@@ -7,7 +7,7 @@ import os
 
 from HillSide.extensions import db
 from HillSide.models import Course, Enrollment, Review
-from HillSide.utils import admin_required, is_valid_file
+from HillSide.utils import admin_required, is_valid_file, generate_secure_filename
 from HillSide.forms.add_course_form import CourseForm
 
 
@@ -159,7 +159,12 @@ def upload_course_video(course_id):
         flash('Invalid video format', 'danger')
         return redirect(url_for('courses.course_details', course_id=course_id))
 
-    filename = secure_filename(file.filename)
+    if not is_valid_file(file, 'video'):
+        flash('Invalid video file.', 'danger')
+        return redirect(url_for('courses.course_details', course_id=course_id))
+
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    filename = generate_secure_filename("video", ext)
 
     upload_folder = os.path.join(
         current_app.root_path,

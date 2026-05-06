@@ -27,7 +27,7 @@ class AddStaffForm(FlaskForm):
 
     phone_number = StringField("Phone Number", validators=[Optional(), Length(max=20)])
     photo = FileField("Profile Photo", validators=[Optional(), FileAllowed(["jpg", "jpeg", "png"], "Images only!")])
-    resume = FileField("Resume", validators=[Optional(), FileAllowed(["pdf", "doc", "docx"], "Documents only!")])
+    resume = FileField("Resume", validators=[Optional(), FileAllowed(["pdf"], "PDFs only!")])
 
     address = TextAreaField("Address", validators=[Optional(), Length(max=2000)])
     gender = SelectField("Gender", choices=[('', '---')] + enum_choices_from_enum(GenderEnum), validators=[Optional()])
