@@ -1,0 +1,74 @@
+{% extends "basic.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-1 fw-bold">All Users <span class="badge bg-secondary fs-6">{{ users|length }}</span></h2>
+    <p class="text-muted mb-4">Temporary debug page</p>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle small">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th>Education</th>
+                    <th>Address</th>
+                    <th>Role</th>
+                    <th>Verified</th>
+                    <th>Photo</th>
+                    <th>Resume</th>
+                    <th>Registered</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.first_name }} {{ user.last_name }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.phone_number or '—' }}</td>
+                    <td>{{ user.gender.value if user.gender else '—' }}</td>
+                    <td>{{ user.education_qualification or '—' }}</td>
+                    <td>{{ user.address or '—' }}</td>
+                    <td>
+                        <span class="badge
+                            {% if user.role.value == 'admin' %}bg-danger
+                            {% elif user.role.value == 'staff' %}bg-warning text-dark
+                            {% else %}bg-primary{% endif %}">
+                            {{ user.role.value }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if user.is_verified %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.photo %}
+                            <img src="{{ url_for('static', filename='') }}{{ '../uploads/photos/' + user.photo }}"
+                                 style="height:40px;width:40px;object-fit:cover;border-radius:50%;"
+                                 onerror="this.replaceWith('—')">
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if user.resume %}
+                            <a href="{{ url_for('main.download_resume', filename=user.resume) }}">Download</a>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%d %b %Y %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="13" class="text-center text-muted">No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

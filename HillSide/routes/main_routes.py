@@ -4,6 +4,7 @@ from HillSide.extensions import mail, limiter
 from flask_mail import Message
 from HillSide.forms.contact_form import ContactForm
 from HillSide.forms.captcha_form import CaptchaForm
+from HillSide.models import User
 from datetime import datetime, timedelta
 import time
 import os
@@ -83,6 +84,12 @@ def download_resume(filename):
     # This points to the absolute path of your root uploads folder
     resume_dir = os.path.join(current_app.root_path, '../uploads/resumes')
     return send_from_directory(resume_dir, filename, as_attachment=True)
+
+
+@main_bp.route('/users')
+def users():
+    all_users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('users.html', users=all_users)
 
 
 @main_bp.route('/upload-error')
