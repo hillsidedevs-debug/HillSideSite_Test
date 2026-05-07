@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from flask import Flask, app
+from flask import Flask, app, render_template_string
 from flask_talisman import Talisman
 from werkzeug.middleware.proxy_fix import ProxyFix
 from HillSide.extensions import db, mail, bcrypt, login_manager, migrate, csrf, limiter
@@ -10,6 +10,7 @@ from HillSide.config import DevelopmentConfig, ProductionConfig, TestingConfig
 from HillSide.routes import register_blueprints
 from HillSide.models import User
 import os
+import traceback
 
 def create_app(config_object=None):
     app = Flask(__name__)
@@ -128,5 +129,22 @@ def create_app(config_object=None):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        tb = traceback.format_exc()
+        app.logger.error(tb)
+        return render_template_string("""
+<!doctype html><html><head>
+<title>500 – Internal Server Error</title>
+<style>
+  body { font-family: monospace; background: #1a1a1a; color: #f8f8f2; padding: 2rem; }
+  h1 { color: #ff5555; }
+  pre { background: #282828; padding: 1.5rem; border-radius: 6px; overflow-x: auto;
+        white-space: pre-wrap; word-break: break-word; font-size: 0.85rem; }
+</style></head><body>
+<h1>500 – Internal Server Error</h1>
+<pre>{{ tb }}</pre>
+</body></html>""", tb=tb), 500
 
     return app
