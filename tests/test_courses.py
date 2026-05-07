@@ -1,5 +1,6 @@
 import pytest
-from HillSide.models import Course, Enrollment
+from HillSide.models import Course, Enrollment, Review, User, RoleEnum
+from HillSide.extensions import db, bcrypt
 
 
 # ---------------------------------------------------
@@ -148,3 +149,94 @@ def test_enroll_course_requires_login(client, sample_course):
     # Flask-Login normally redirects with 302
     assert response.status_code == 302
     assert "/login" in response.location
+
+
+# ---------------------------------------------------
+# /courses/<id> – 404
+# ---------------------------------------------------
+
+def test_course_details_404(client):
+    response = client.get("/courses/99999")
+    assert response.status_code == 404
+
+
+def test_add_course_requires_login(client):
+    response = client.get("/add-course", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.location
+
+
+# ---------------------------------------------------
+# Reviews
+# ---------------------------------------------------
+
+def test_submit_review_requires_login(client, sample_course):
+    response = client.get(f"/courses/{sample_course}/review", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/login" in response.location
+
+
+def test_submit_review_not_enrolled(client, regular_user, sample_course):
+    response = client.post(f"/courses/{sample_course}/review", data={
+        "rating": "5",
+        "comment": "Great course!",
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"must be enrolled" in response.data.lower()
+
+
+def test_submit_review_enrolled(client, app, regular_user, sample_course):
+    client.post(f"/courses/{sample_course}/enroll", data={}, follow_redirects=True)
+
+    response = client.post(f"/courses/{sample_course}/review", data={
+        "rating": "4",
+        "comment": "Really good!",
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"submitted" in response.data.lower()
+
+    with app.app_context():
+        user = User.query.filter_by(username="charlie").first()
+        review = Review.query.filter_by(user_id=user.id, course_id=sample_course).first()
+        assert review is not None
+        assert review.rating == 4
+        assert review.approved is False
+
+
+def test_submit_review_invalid_rating(client, regular_user, sample_course):
+    client.post(f"/courses/{sample_course}/enroll", data={}, follow_redirects=True)
+
+    response = client.post(f"/courses/{sample_course}/review", data={
+        "rating": "10",
+        "comment": "Out of range!",
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"valid rating" in response.data.lower()
+
+
+def test_submit_review_duplicate(client, app, regular_user, sample_course):
+    client.post(f"/courses/{sample_course}/enroll", data={}, follow_redirects=True)
+    client.post(f"/courses/{sample_course}/review", data={
+        "rating": "5",
+        "comment": "First review",
+    }, follow_redirects=True)
+
+    response = client.post(f"/courses/{sample_course}/review", data={
+        "rating": "3",
+        "comment": "Second review",
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"already submitted" in response.data.lower()
+
+    with app.app_context():
+        user = User.query.filter_by(username="charlie").first()
+        count = Review.query.filter_by(user_id=user.id, course_id=sample_course).count()
+        assert count == 1
+
+
+def test_submit_review_get_form(client, app, regular_user, sample_course):
+    client.post(f"/courses/{sample_course}/enroll", data={}, follow_redirects=True)
+
+    response = client.get(f"/courses/{sample_course}/review")
+    assert response.status_code == 200
+    assert b"review" in response.data.lower()

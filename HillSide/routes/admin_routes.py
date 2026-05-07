@@ -28,14 +28,18 @@ def allowed_file(filename):
 @login_required
 @admin_required
 def admin_dashboard():
-    total_users = User.query.count()
+    total_users = User.query.filter_by(role=RoleEnum.USER).count()
+    total_staff = User.query.filter_by(role=RoleEnum.STAFF).count()
     total_courses = Course.query.count()
     total_enrollments = Enrollment.query.count()
-    recent_enrollments = Enrollment.query.order_by(Enrollment.enrolled_on.desc()).limit(5).all()
+    pending_reviews = Review.query.filter_by(approved=False).count()
+    recent_enrollments = Enrollment.query.order_by(Enrollment.enrolled_on.desc()).limit(8).all()
     return render_template('admin_dashboard.html',
                            total_users=total_users,
+                           total_staff=total_staff,
                            total_courses=total_courses,
                            total_enrollments=total_enrollments,
+                           pending_reviews=pending_reviews,
                            recent_enrollments=recent_enrollments)
 
 @admin_bp.route('/manage_courses')
@@ -493,11 +497,20 @@ def reject_review(review_id):
         abort(403)
 
     review = Review.query.get_or_404(review_id)
-    db.session.delete(review)  # or just set approved=False and add rejected_reason column later
+    reviewer_name = review.user.username
+    db.session.delete(review)
     db.session.commit()
-    
-    flash(f"Review by {review.user.username} rejected and removed.", "warning")
+
+    flash(f"Review by {reviewer_name} rejected and removed.", "warning")
     return redirect(url_for('admin.reviews_list'))
+
+
+@admin_bp.route('/all-users')
+@login_required
+@admin_required
+def all_users():
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('users.html', users=users)
 
 
 @admin_bp.route('/review/<int:review_id>/delete', methods=['POST'])

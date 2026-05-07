@@ -7,7 +7,7 @@ import os
 
 from HillSide.extensions import db
 from HillSide.models import Course, Enrollment, Review
-from HillSide.utils import admin_required, is_valid_file, generate_secure_filename
+from HillSide.utils import admin_required, staff_required, is_valid_file, generate_secure_filename
 from HillSide.forms.add_course_form import CourseForm
 
 
@@ -38,7 +38,7 @@ import os
 
 @courses_bp.route('/add-course', methods=['GET', 'POST'])
 @login_required
-@admin_required
+@staff_required
 def add_course():
     form = CourseForm()
     

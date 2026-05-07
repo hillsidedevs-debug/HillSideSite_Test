@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from flask import Flask, app
+from flask import Flask, app, flash, redirect, request, url_for
 from flask_talisman import Talisman
 from werkzeug.middleware.proxy_fix import ProxyFix
 from HillSide.extensions import db, mail, bcrypt, login_manager, migrate, csrf, limiter
@@ -128,5 +128,10 @@ def create_app(config_object=None):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @app.errorhandler(429)
+    def rate_limit_exceeded(e):
+        flash("Too many attempts. Please wait a moment and try again.", "warning")
+        return redirect(request.referrer or url_for('main.index'))
 
     return app

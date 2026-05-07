@@ -41,6 +41,7 @@ class RegisterForm(FlaskForm):
     gender = SelectField(
         "Gender",
         choices=[
+            ('', '--- Select Gender ---'),
             (GenderEnum.MALE.value, "Male"),
             (GenderEnum.FEMALE.value, "Female"),
             (GenderEnum.OTHER.value, "Other"),

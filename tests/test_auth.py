@@ -264,8 +264,7 @@ def test_verify_email_invalid(client, mocker):
 
     response = client.get("/verify/badtoken", follow_redirects=True)
 
-    # 2. Check for the message
-    assert b"The verification link is invalid or expired." in response.data
+    assert b"Invalid or expired verification link." in response.data
 
 # def test_resend_verification(client, db, mocker):
 #     user = User(email="needverify@example.com", is_verified=False)

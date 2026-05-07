@@ -86,11 +86,6 @@ def download_resume(filename):
     return send_from_directory(resume_dir, filename, as_attachment=True)
 
 
-@main_bp.route('/users')
-def users():
-    all_users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('users.html', users=all_users)
-
 
 @main_bp.route('/upload-error')
 def upload_error():

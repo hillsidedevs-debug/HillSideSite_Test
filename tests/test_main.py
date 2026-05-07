@@ -83,5 +83,5 @@ def test_contact_email_fails(mock_send, client):
     }, follow_redirects=True)
 
     assert response.status_code == 200
-    assert b"something went wrong" in response.data.lower()
+    assert b"error sending message" in response.data.lower()
     mock_send.assert_called_once()

@@ -273,9 +273,9 @@
       </a>
     </div>
 
-  {% elif current_user.is_admin() %}
+  {% elif current_user.is_admin() or current_user.is_staff() %}
     <div class="alert alert-info rounded-4 border-0 shadow-sm">
-      <i class="bi bi-shield-lock me-2"></i> <strong>Admin View:</strong> You are viewing this page as an administrator.
+      <i class="bi bi-shield-lock me-2"></i> <strong>Staff View:</strong> You are viewing this page as a staff member.
     </div>
 
   {% elif is_enrolled %}

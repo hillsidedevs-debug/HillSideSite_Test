@@ -83,9 +83,13 @@
               <a href="{{ url_for('admin.edit_staff', staff_id=user.id) }}" class="btn btn-sm btn-outline-info me-2">
                 <i class="bi bi-eye"></i>
               </a>
-              <a href="#" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this user?');">
-                <i class="bi bi-trash"></i>
-              </a>
+              <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display:inline;"
+                    onsubmit="return confirm('Delete {{ user.username }}? This cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
             </td>
           </tr>
           {% else %}
