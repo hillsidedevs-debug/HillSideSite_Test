@@ -105,7 +105,12 @@ def register():
                 user.is_verified = True
                 db.session.commit()
             else:
-                send_verification_email(user)
+                try:
+                    send_verification_email(user)
+                except Exception as e:
+                    current_app.logger.error(f"Failed to send verification email to {user.email}: {e}")
+                    flash("Account created but we couldn't send a verification email. Please contact support.", "warning")
+                    return redirect(url_for("auth.login"))
 
             flash("Registration successful. Please verify your email.", "info")
             return redirect(url_for("auth.login"))
@@ -205,7 +210,10 @@ def update_profile():
     if form.email.data != current_user.email:
         current_user.email = form.email.data
         current_user.is_verified = False
-        send_verification_email(current_user)
+        try:
+            send_verification_email(current_user)
+        except Exception as e:
+            current_app.logger.error(f"Failed to send verification email to {current_user.email}: {e}")
         flash("Email changed. Please verify your new email.", "warning")
 
     # 1. FILE CLEANUP & UPDATE LOGIC
@@ -347,7 +355,10 @@ def resend_verification():
     user = User.query.filter_by(email=email).first()
 
     if user and not user.is_verified:
-        send_verification_email(user)
+        try:
+            send_verification_email(user)
+        except Exception as e:
+            current_app.logger.error(f"Failed to resend verification email to {user.email}: {e}")
 
     flash("If applicable, a verification email has been sent.", "info")
     return redirect(url_for("auth.login"))

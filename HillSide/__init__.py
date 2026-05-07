@@ -77,10 +77,11 @@ def create_app(config_object=None):
         ],
     }
 
+    force_https = (env == "production") and (os.getenv("FORCE_HTTPS", "true").lower() != "false")
     Talisman(
         app,
         content_security_policy=csp,
-        force_https=(env == "production"),
+        force_https=force_https,
     )
 
     if env == "production":
