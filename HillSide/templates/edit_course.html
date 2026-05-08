@@ -89,7 +89,7 @@
         <!-- Course structure -->
         <div class="mb-3">
             {{ form.course_structure.label(class="form-label") }}
-            {{ form.course_structure(class="form-control", rows=3) }}
+            {{ form.course_structure(class="form-control", rows=6, placeholder="Week 1: Introduction\n- Lesson 1\n- Lesson 2\nWeek 2: Advanced Topics\n- Lesson 3") }}
             {% if form.course_structure.errors %}
                 <div class="text-danger small">
                     {% for error in form.course_structure.errors %}{{ error }}<br>{% endfor %}

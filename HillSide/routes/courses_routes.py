@@ -138,11 +138,8 @@ def course_details(course_id):
 
 @courses_bp.route('/courses/<int:course_id>/upload-video', methods=['POST'])
 @login_required
+@admin_required
 def upload_course_video(course_id):
-    # if not current_user.is_staff():
-    #     flash('Unauthorized', 'danger')
-    #     return redirect(url_for('courses.course_details', course_id=course_id))
-
     course = Course.query.get_or_404(course_id)
 
     if 'video' not in request.files:
@@ -179,6 +176,30 @@ def upload_course_video(course_id):
 
     flash('Course intro video uploaded successfully', 'success')
     return redirect(url_for('courses.course_details', course_id=course_id))
+
+
+@courses_bp.route('/courses/<int:course_id>/delete-video', methods=['POST'])
+@login_required
+@admin_required
+def delete_course_video(course_id):
+    course = Course.query.get_or_404(course_id)
+
+    if course.video:
+        video_path = os.path.join(
+            current_app.root_path,
+            'static/uploads/courses/videos',
+            course.video
+        )
+        if os.path.exists(video_path):
+            os.remove(video_path)
+        course.video = None
+        db.session.commit()
+        flash('Course intro video removed.', 'success')
+    else:
+        flash('No video to remove.', 'warning')
+
+    return redirect(url_for('courses.course_details', course_id=course_id))
+
 
 @courses_bp.route('/courses/<int:course_id>/enroll', methods=['POST'])
 @login_required
