@@ -1,0 +1,80 @@
+{% extends "basic.html" %}
+
+{% block content %}
+<section class="py-5 text-center bg-light">
+  <div class="container">
+    <h1 class="display-4 fw-bold">Our Portfolio</h1>
+    <p class="lead text-muted">
+      A showcase of the products, platforms, and solutions we've built for clients and students alike.
+    </p>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm hover-lift">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="bi bi-globe fs-1 text-primary"></i>
+            </div>
+            <h5 class="card-title fw-bold">Web Applications</h5>
+            <p class="card-text text-muted">
+              Full-stack web platforms built with Flask, Django, and React — from MVPs to production-ready systems.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm hover-lift">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="bi bi-phone fs-1 text-success"></i>
+            </div>
+            <h5 class="card-title fw-bold">Mobile Solutions</h5>
+            <p class="card-text text-muted">
+              Cross-platform mobile apps designed for performance, usability, and real-world impact.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100 border-0 shadow-sm hover-lift">
+          <div class="card-body text-center p-4">
+            <div class="mb-3">
+              <i class="bi bi-shield-lock fs-1 text-warning"></i>
+            </div>
+            <h5 class="card-title fw-bold">Security & Infrastructure</h5>
+            <p class="card-text text-muted">
+              Secure, scalable backend systems with cloud deployment, authentication, and monitoring built in.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light text-center">
+  <div class="container">
+    <h2 class="fw-bold mb-3">Have a project in mind?</h2>
+    <p class="lead text-muted mb-4">Let's talk about what we can build together.</p>
+    <a href="{{ url_for('main.contact') }}" class="btn btn-primary btn-lg rounded-pill px-5">Get in Touch</a>
+  </div>
+</section>
+
+<style>
+  .hover-lift {
+    transition: all 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+  }
+</style>
+{% endblock %}

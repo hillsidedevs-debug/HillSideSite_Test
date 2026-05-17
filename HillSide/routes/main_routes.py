@@ -51,6 +51,10 @@ def about():
 def services():
     return render_template('services.html')
 
+@main_bp.route('/portfolio')
+def portfolio():
+    return render_template('portfolio.html')
+
 @main_bp.route('/contact', methods=['GET', 'POST'])
 @limiter.limit("5 per hour", methods=["POST"])
 def contact():
